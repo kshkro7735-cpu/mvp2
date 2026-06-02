@@ -330,10 +330,12 @@ function initCourseDetail() {
 function initDirectory() {
     const urlParams = new URLSearchParams(window.location.search);
     let currentCategory = urlParams.get("category") || "all";
-    let searchQuery = "";
+    let searchQuery = urlParams.get("q") || "";
+    let currentSort = "default";
 
     const cardListEl = document.getElementById("shop-list-container");
     const searchInput = document.getElementById("shop-search-input");
+    const sortSelect = document.getElementById("shop-sort-select");
     const tabButtons = document.querySelectorAll(".tab-btn");
 
     // URL 파라미터에 맞는 탭 활성화 상태 처리
@@ -346,6 +348,14 @@ function initDirectory() {
             }
         });
     }
+
+    // URL 파라미터로 전달된 검색어가 있으면 인풋에 입력
+    if (searchQuery) {
+        searchInput.value = searchQuery;
+    }
+
+    // 북마크 목록 초기화
+    let bookmarks = JSON.parse(localStorage.getItem("yanggu_bookmarks")) || [];
 
     // 초기 렌더링
     renderShops();
@@ -360,18 +370,38 @@ function initDirectory() {
         });
     });
 
-    // 검색 이벤트 바인딩 (디바운싱 생략하여 즉각적이고 손쉬운 조작 제공)
+    // 검색 이벤트 바인딩
     searchInput.addEventListener("input", function() {
         searchQuery = this.value.trim().toLowerCase();
         renderShops();
     });
 
+    // 정렬 이벤트 바인딩
+    if (sortSelect) {
+        sortSelect.addEventListener("change", function() {
+            currentSort = this.value;
+            renderShops();
+        });
+    }
+
     function renderShops() {
         cardListEl.innerHTML = "";
 
-        // 필터링 적용
-        const filtered = YANGGU_DATA.shops.filter(shop => {
-            const matchesCategory = currentCategory === "all" || shop.category === currentCategory;
+        // 북마크 로드
+        bookmarks = JSON.parse(localStorage.getItem("yanggu_bookmarks")) || [];
+
+        // 1. 카테고리 & 검색어 필터링 적용
+        let filtered = YANGGU_DATA.shops.filter(shop => {
+            // 카테고리 필터링 (저장한 곳 분기 포함)
+            let matchesCategory = false;
+            if (currentCategory === "all") {
+                matchesCategory = true;
+            } else if (currentCategory === "bookmarked") {
+                matchesCategory = bookmarks.includes(shop.id);
+            } else {
+                matchesCategory = shop.category === currentCategory;
+            }
+
             const matchesSearch = shop.name.toLowerCase().includes(searchQuery) ||
                                   shop.tags.some(tag => tag.toLowerCase().includes(searchQuery)) ||
                                   shop.desc.toLowerCase().includes(searchQuery) ||
@@ -379,9 +409,22 @@ function initDirectory() {
             return matchesCategory && matchesSearch;
         });
 
+        // 2. 정렬 적용
+        if (currentSort === "rating") {
+            // 별점 높은 순
+            filtered.sort((a, b) => b.rating - a.rating);
+        } else if (currentSort === "distance") {
+            // 거리 가까운 순 (분 파싱 비교)
+            const getMinutes = (distStr) => {
+                const matches = distStr.match(/\d+/);
+                return matches ? parseInt(matches[0], 10) : 999;
+            };
+            filtered.sort((a, b) => getMinutes(a.distance) - getMinutes(b.distance));
+        }
+
         if (filtered.length === 0) {
             cardListEl.innerHTML = `
-                <div class="card text-center" style="padding: 40px 20px;">
+                <div class="card text-center" style="padding: 40px 20px; grid-column: 1 / -1;">
                     <p style="font-size: 1.1rem; color: var(--text-muted);">조건에 맞는 업체 정보가 없습니다.</p>
                     <p style="font-size: 0.95rem; color: var(--text-muted); margin-top: 6px;">상호명이나 키워드를 다시 확인해 보세요.</p>
                 </div>
@@ -393,6 +436,7 @@ function initDirectory() {
         filtered.forEach(shop => {
             const card = document.createElement("div");
             card.className = "card shop-card";
+            card.style.position = "relative";
 
             // 카테고리별 아이콘 결정
             let categoryIcon = "map-pin";
@@ -413,14 +457,27 @@ function initDirectory() {
             // 태그 리스트 만들기
             const tagsHtml = shop.tags.map(t => `<span class="badge badge-tag">#${t}</span>`).join("");
 
-            // 실제 매장 이미지가 없으므로 CSS 그라데이션과 텍스트로 완성된 고품질 플레이스홀더 렌더링
+            // 이미지가 지정되어 있으면 배경 이미지로 사용하고, 없으면 카테고리별 그라데이션 사용
+            const hasImage = shop.image ? `background-image: url('${shop.image}'); background-size: cover; background-position: center;` : '';
             const gradColor = shop.category === 'lodging' ? 'linear-gradient(135deg, #2C5E43, #D4AF37)' : (shop.category === 'restaurant' ? 'linear-gradient(135deg, #4A7A96, #2C5E43)' : 'linear-gradient(135deg, #8E7A6B, #2C5E43)');
+            const backgroundStyle = shop.image ? hasImage : `background: ${gradColor}`;
+            const iconOpacity = shop.image ? '0.15' : '0.9';
+
+            const isBookmarked = bookmarks.includes(shop.id);
             
             card.innerHTML = `
-                <div class="shop-img-container" style="background: ${gradColor}">
+                <div class="shop-img-container" style="${backgroundStyle}">
+                    <div class="card-action-btns">
+                        <button class="btn-card-action btn-share" data-id="${shop.id}" data-name="${shop.name}" data-category="${shop.category}" title="공유하기">
+                            <i data-lucide="share-2" style="width: 15px; height: 15px;"></i>
+                        </button>
+                        <button class="btn-card-action btn-bookmark ${isBookmarked ? 'bookmarked' : ''}" data-id="${shop.id}" title="저장하기">
+                            <i data-lucide="heart" style="width: 15px; height: 15px;"></i>
+                        </button>
+                    </div>
                     <div class="shop-img-placeholder">
-                        <i data-lucide="${categoryIcon}" style="color: #ffffff; width: 42px; height: 42px; opacity: 0.9;"></i>
-                        <span style="position: absolute; bottom: 12px; right: 12px; color: rgba(255,255,255,0.85); font-size: 0.85rem; font-weight: 700; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px;">${categoryName}</span>
+                        <i data-lucide="${categoryIcon}" style="color: #ffffff; width: 42px; height: 42px; opacity: ${iconOpacity};"></i>
+                        <span style="position: absolute; bottom: 12px; right: 12px; color: rgba(255,255,255,0.85); font-size: 0.85rem; font-weight: 700; background: rgba(0,0,0,0.4); padding: 4px 8px; border-radius: 4px;">${categoryName}</span>
                     </div>
                     <div class="shop-badge-container">
                         <span class="badge badge-distance" style="background-color: var(--primary); color: #ffffff; border: none; font-size:0.8rem; box-shadow: 0 2px 5px rgba(0,0,0,0.15)">
@@ -438,6 +495,13 @@ function initDirectory() {
                         ${benefitBadgesHtml}
                         ${tagsHtml}
                     </div>
+                    
+                    <!-- 대표 메뉴 정보 노출 -->
+                    <div class="shop-menu-box">
+                        <span>📋 대표 상품/메뉴</span>
+                        <p>${shop.menu}</p>
+                    </div>
+
                     <p class="shop-desc">${shop.desc}</p>
                     
                     <div style="background-color: #FFF0ED; padding: 12px; border-radius: var(--radius-sm); border: 1px dashed #FFE0D9; margin-bottom: 16px;">
@@ -456,6 +520,60 @@ function initDirectory() {
                 </div>
             `;
             cardListEl.appendChild(card);
+        });
+
+        // 즐겨찾기 클릭 이벤트 연결
+        const bookmarkBtns = cardListEl.querySelectorAll(".btn-bookmark");
+        bookmarkBtns.forEach(btn => {
+            btn.addEventListener("click", function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const id = this.dataset.id;
+                let currentBookmarks = JSON.parse(localStorage.getItem("yanggu_bookmarks")) || [];
+                
+                if (currentBookmarks.includes(id)) {
+                    currentBookmarks = currentBookmarks.filter(item => item !== id);
+                    this.classList.remove("bookmarked");
+                    showToast("즐겨찾기에서 해제되었습니다.");
+                } else {
+                    currentBookmarks.push(id);
+                    this.classList.add("bookmarked");
+                    showToast("즐겨찾기에 추가되었습니다!");
+                }
+                
+                localStorage.setItem("yanggu_bookmarks", JSON.stringify(currentBookmarks));
+                
+                // 만약 '저장한 곳' 탭에서 클릭했다면 즉시 카드 삭제
+                if (currentCategory === "bookmarked") {
+                    renderShops();
+                }
+            });
+        });
+
+        // 공유하기 클릭 이벤트 연결
+        const shareBtns = cardListEl.querySelectorAll(".btn-share");
+        shareBtns.forEach(btn => {
+            btn.addEventListener("click", function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const id = this.dataset.id;
+                const name = this.dataset.name;
+                const category = this.dataset.category;
+                
+                // 공유 주소 생성 ( directory.html?category=...&q=상점명 )
+                const shareUrl = `${window.location.origin}${window.location.pathname}?category=${category}&q=${encodeURIComponent(name)}`;
+                
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(shareUrl).then(() => {
+                        showToast("상점 링크가 복사되었습니다!");
+                    }).catch(err => {
+                        console.error("클립보드 복사 실패", err);
+                        fallbackCopyTextToClipboard(shareUrl);
+                    });
+                } else {
+                    fallbackCopyTextToClipboard(shareUrl);
+                }
+            });
         });
 
         // 주입 후 다시 한 번 아이콘 생성 (동적 주입된 요소 적용)
@@ -520,3 +638,56 @@ function initContact() {
         });
     }
 }
+
+/**
+ * 커스텀 토스트 알림 띄우기
+ */
+function showToast(message) {
+    let toast = document.getElementById("toast-msg");
+    if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "toast-msg";
+        toast.className = "toast-msg";
+        document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<i data-lucide="check-circle" style="width:18px; height:18px; color: #FFFFFF;"></i> <span>${message}</span>`;
+    
+    if (typeof lucide !== "undefined") {
+        lucide.createIcons({
+            attrs: {
+                style: "width:18px; height:18px; color:#FFFFFF; stroke-width: 2.5px;"
+            },
+            node: toast
+        });
+    }
+    toast.classList.add("show");
+    setTimeout(() => {
+        toast.classList.remove("show");
+    }, 2000);
+}
+
+/**
+ * 구형 브라우저 대응 클립보드 복사 헬퍼
+ */
+function fallbackCopyTextToClipboard(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.position = "fixed";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            showToast("상점 링크가 복사되었습니다!");
+        } else {
+            console.error('클립보드 복사 실패(fallback unsuccessful)');
+        }
+    } catch (err) {
+        console.error('클립보드 복사 실패(fallback error)', err);
+    }
+    document.body.removeChild(textArea);
+}
+

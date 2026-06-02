@@ -737,3 +737,90 @@ textarea.form-control {
         display: block;
     }
 }
+
+/* 디렉토리 카드 내 상단 즐겨찾기/공유 버튼 그룹 */
+.card-action-btns {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.btn-card-action {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.95);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    transition: var(--transition);
+    color: var(--text-muted);
+}
+
+.btn-card-action:hover {
+    transform: scale(1.08);
+    background-color: #FFFFFF;
+}
+
+.btn-card-action.bookmarked i {
+    fill: var(--accent);
+    color: var(--accent) !important;
+}
+
+/* 대표메뉴 라벨 및 설명 */
+.shop-menu-box {
+    background-color: var(--primary-light);
+    border-left: 3px solid var(--primary);
+    padding: 10px 12px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    font-size: 0.92rem;
+}
+
+.shop-menu-box span {
+    font-weight: 700;
+    color: var(--primary);
+    display: block;
+    margin-bottom: 2px;
+}
+
+.shop-menu-box p {
+    color: var(--text-main);
+    font-weight: 500;
+}
+
+/* 공유 완료 토스트 알림 */
+.toast-msg {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(28, 45, 36, 0.95);
+    color: #FFFFFF;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 9999;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.toast-msg.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+

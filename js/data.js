@@ -11,13 +11,14 @@ const YANGGU_DATA = {
         ]
     },
 
-    // 업체 디렉토리 데이터 (네이버 실제 검색 순위 기반 - 총 14개)
+    // 업체 디렉토리 데이터 (네이버 실제 검색 순위 및 상세 사진 적용 - 총 14개)
     shops: [
         // 숙소 (5개)
         {
             id: "lodging-1",
             category: "lodging",
             name: "늘솔펜션",
+            image: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&auto=format&fit=crop",
             rating: 4.9,
             distance: "신교대 차로 5분",
             location: "강원특별자치도 양구군 국토정중앙면 정중앙로 410",
@@ -25,6 +26,7 @@ const YANGGU_DATA = {
             mapLink: "https://map.kakao.com/?q=양구 늘솔펜션",
             benefits: ["초근접 펜션", "바비큐 그릴 제공", "늦은 퇴실"],
             benefitDesc: "군 장병 수료식 당일 대실 시 복귀 시간에 맞춘 레이트 체크아웃(17시 30분) 무료 지원",
+            menu: "독채 대실 / 1박 숙박",
             desc: "국토정중앙면에 위치해 21사단 신병교육대와 차로 단 5분 거리에 있는 쾌적한 신축 독채 펜션입니다. 한적하고 조용한 숲속에서 가족만의 바비큐 시간을 보낼 수 있습니다.",
             tags: ["신교대5분", "신축독채", "조용한숲속"]
         },
@@ -32,6 +34,7 @@ const YANGGU_DATA = {
             id: "lodging-2",
             category: "lodging",
             name: "가든앤포레스트 펜션",
+            image: "https://images.unsplash.com/photo-1449844908441-8829872d2607?w=600&auto=format&fit=crop",
             rating: 4.8,
             distance: "신교대 차로 9분",
             location: "강원특별자치도 양구군 양구읍 사명산길 66",
@@ -39,6 +42,7 @@ const YANGGU_DATA = {
             mapLink: "https://map.kakao.com/?q=양구 가든앤포레스트 펜션",
             benefits: ["카페 음료 무료 쿠폰", "정원 산책로"],
             benefitDesc: "군 장병 동반 가족 숙박 및 대실 시 단지 내 카페포레스트 음료 2잔 무료 쿠폰 지급",
+            menu: "펜션 1박 숙박 / 대실",
             desc: "양구 시내 초입에 위치해 있으며 야외 정원이 아름답게 조성된 자연 친화형 펜션입니다. 펜션 내에 분위기 좋은 정원 카페를 함께 운영하여 면회객들에게 최적의 힐링을 선사합니다.",
             tags: ["정원테라스", "카페운영", "시내인접"]
         },
@@ -46,6 +50,7 @@ const YANGGU_DATA = {
             id: "lodging-3",
             category: "lodging",
             name: "베니키아 KCP 호텔",
+            image: "https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=600&auto=format&fit=crop",
             rating: 4.5,
             distance: "신교대 차로 11분",
             location: "강원특별자치도 양구군 양구읍 파로호로 993",
@@ -53,6 +58,7 @@ const YANGGU_DATA = {
             mapLink: "https://map.kakao.com/?q=베니키아 KCP 호텔",
             benefits: ["호텔 10% 할인", "파로호 전망"],
             benefitDesc: "21사단 수료식 면회객 투숙 시 객실 이용 정가의 10% 즉시 할인 혜택",
+            menu: "스탠다드 더블 / 트윈 객실",
             desc: "양구에서 가장 깨끗하고 현대적인 시설을 자랑하는 호텔급 숙소입니다. 침대형 베드 객실을 선호하고, 시내 중심 인프라와 식당가 접근성을 중시하는 분들께 가장 만족도가 높은 숙소입니다.",
             tags: ["대형호텔", "침대객실", "하늘정원"]
         },
@@ -60,6 +66,7 @@ const YANGGU_DATA = {
             id: "lodging-4",
             category: "lodging",
             name: "솔마루펜션",
+            image: "https://images.unsplash.com/photo-1505873242700-f289a29e1e0f?w=600&auto=format&fit=crop",
             rating: 4.7,
             distance: "신교대 차로 13분",
             location: "강원특별자치도 양구군 양구읍 성곡로 280",
@@ -67,6 +74,7 @@ const YANGGU_DATA = {
             mapLink: "https://map.kakao.com/?q=양구 솔마루펜션",
             benefits: ["참숯그릴 무료", "개별 바베큐"],
             benefitDesc: "면회 군 장병 동반 투숙 시 2만원 상당의 개별 참숯/그릴 장비 세트 무료 대여",
+            menu: "호수전망 온돌룸 / 침대룸",
             desc: "파로호 호수 풍경을 테라스에서 정면으로 감상할 수 있는 호반 전망 펜션입니다. 객실마다 완전히 독립된 개별 바비큐 테라스가 있어 고생한 아들에게 안심하고 고기를 구워 먹일 수 있습니다.",
             tags: ["호수전망", "독채바비큐", "힐링쉼터"]
         },
@@ -74,6 +82,7 @@ const YANGGU_DATA = {
             id: "lodging-5",
             category: "lodging",
             name: "르쏠레이475 글램핑",
+            image: "https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?w=600&auto=format&fit=crop",
             rating: 4.6,
             distance: "신교대 차로 8분",
             location: "강원특별자치도 양구군 양구읍 하리 475",
@@ -81,6 +90,7 @@ const YANGGU_DATA = {
             mapLink: "https://map.kakao.com/?q=르쏠레이475",
             benefits: ["음료 15% 할인", "이색 야경"],
             benefitDesc: "장병 동반 글램핑 이용 시 함께 운영하는 뷰 카페 15% 할인권 증정",
+            menu: "패밀리 글램핑 / 커플 글램핑",
             desc: "양구 읍내를 한눈에 내려다볼 수 있는 높은 지대에 위치한 이색 글램핑 및 카페 공간입니다. 군 생활 속 답답함을 잊게 할 탁 트인 스카이라인 뷰가 매력적입니다.",
             tags: ["글램핑카페", "시내전망뷰", "이색캠핑"]
         },
@@ -90,6 +100,7 @@ const YANGGU_DATA = {
             id: "food-1",
             category: "restaurant",
             name: "양구재래식손두부",
+            image: "images/yanggu_sondubu.jpg",
             rating: 4.9,
             distance: "신교대 차로 8분",
             location: "강원특별자치도 양구군 양구읍 학안로 6",
@@ -97,6 +108,7 @@ const YANGGU_DATA = {
             mapLink: "https://map.kakao.com/?q=양구재래식손두부",
             benefits: ["두부부침 서비스", "밑반찬 리필"],
             benefitDesc: "군 장병 동반 테이블 식사 시 가마솥에서 갓 짜낸 고소한 들기름 두부부침 1접시 무료 제공",
+            menu: "짜박두부 10,000원 / 두부전골 10,000원",
             desc: "백종원의 3대천왕 등 다수 매체에 소개된 전국구 두부 요리 성지입니다. 짜박두부와 두부전골은 극강의 부드러움과 고소함을 지녀, 부모님과 장병 모두 건강한 식사로 만족할 수밖에 없는 곳입니다.",
             tags: ["짜박두부", "가마솥손두부", "3대천왕맛집"]
         },
@@ -104,6 +116,7 @@ const YANGGU_DATA = {
             id: "food-2",
             category: "restaurant",
             name: "도촌막국수",
+            image: "images/dochon_makguksu.webp",
             rating: 4.8,
             distance: "신교대 차로 4분",
             location: "강원특별자치도 양구군 국토정중앙면 도촌길 18",
@@ -111,6 +124,7 @@ const YANGGU_DATA = {
             mapLink: "https://map.kakao.com/?q=양구 도촌막국수",
             benefits: ["사리 곱빼기 서비스", "신교대 초인접"],
             benefitDesc: "훈련소 면회 장병 주문 시 면 사리 곱빼기 변경 요금 무료 특별 우대",
+            menu: "메밀막국수 8,000원 / 한방편육 20,000원",
             desc: "21사단 신병교육대와 불과 4분 거리로, 수료 행사 직후 가장 빠른 첫 식사로 동치미 막국수와 쫀득한 한방 편육을 훌륭한 비주얼과 구성으로 먹을 수 있어 인기가 넘칩니다.",
             tags: ["신교대인근", "메밀막국수", "한방편육"]
         },
@@ -118,20 +132,23 @@ const YANGGU_DATA = {
             id: "food-3",
             category: "restaurant",
             name: "시래원",
+            image: "images/siraewon.png",
             rating: 4.8,
             distance: "신교대 차로 10분",
-            location: "강원특별자치도 양구군 양구읍 파로호로 857",
+            location: "강원특별자치도 양구군 국토정중앙면 봉화산로 457",
             phone: "033-481-4200",
             mapLink: "https://map.kakao.com/?q=양구 시래원",
             benefits: ["떡갈비 추가 증정", "웰빙 한정식"],
             benefitDesc: "군 장병 동반 테이블 시래기 정식 주문 시 1인당 수제 떡갈비 1개씩 추가 증정 서비스",
-            desc: "양구의 특산물 펀치볼 시래기를 아낌없이 얹어 갓 지은 시래기 밥 정식으로 명성 높은 한정식집입니다. 양념장과 나물을 곁들여 먹는 정갈하고 슴슴한 밥상으로 부모님을 모시기에 최고입니다.",
+            menu: "시래기 정식 (1인) 13,000원",
+            desc: "양구의 특산물 펀치볼 시래기를 아낌없이 얹어 갓 지은 시래기 밥 정식으로 명성 높은 한정식집입니다. 양념장 and 나물을 곁들여 먹는 정갈하고 슴슴한 밥상으로 부모님을 모시기에 최고입니다.",
             tags: ["시래기정식", "떡갈비서비스", "웰빙한정식"]
         },
         {
             id: "food-4",
             category: "restaurant",
             name: "강원한우정육식당",
+            image: "images/gangwon_hanwoo.jpg",
             rating: 4.8,
             distance: "신교대 차로 10분",
             location: "강원특별자치도 양구군 양구읍 사명산길 77",
@@ -139,6 +156,7 @@ const YANGGU_DATA = {
             mapLink: "https://map.kakao.com/?q=강원한우정육식당",
             benefits: ["후식 서비스", "가족 단독 룸"],
             benefitDesc: "장병 동반 구이 메뉴 주문 시 차돌된장찌개 또는 시원한 냉면 후식 무료 서비스",
+            menu: "명품한우 등심 (150g) 38,000원 / 한우갈비살 39,000원",
             desc: "명품 강원 한우를 정육점 가격에 등급별로 선택하여 구워 먹는 프리미엄 식당입니다. 단독 개별 방이 구비되어 있어 조용한 분위기 속에서 아들에게 고급 소고기 영양 보충을 해주기 제격입니다.",
             tags: ["명품한우", "정육식당", "개별가족룸"]
         },
@@ -146,13 +164,15 @@ const YANGGU_DATA = {
             id: "food-5",
             category: "restaurant",
             name: "파로호육개장",
+            image: "images/paroho_yukgaejang.png",
             rating: 4.7,
             distance: "신교대 차로 10분",
-            location: "강원특별자치도 양구군 양구읍 파로호로 859",
-            phone: "033-481-5600",
+            location: "강원특별자치도 양구군 양구읍 사명길 107",
+            phone: "033-481-7807",
             mapLink: "https://map.kakao.com/?q=양구 파로호육개장",
             benefits: ["고기만두 서비스", "해장 해소"],
             benefitDesc: "군 장병 방문 동반 시 테이블당 속이 꽉 찬 수제 고기만두 1판 서비스 제공",
+            menu: "육개장 칼국수 9,000원 / 전통 육개장 9,000원",
             desc: "얼큰하고 묵직한 국물 맛으로 네이버 인기 검색어 최상단에 고정된 양구의 전통 육개장 전문점입니다. 국물이 깊고 칼국수 사리가 푸짐하여, 복귀 전 장병들의 지친 속을 달래줄 든든한 뚝배기 요리입니다.",
             tags: ["육개장칼국수", "해장국물", "현지인맛집"]
         },
@@ -160,6 +180,7 @@ const YANGGU_DATA = {
             id: "food-6",
             category: "restaurant",
             name: "밤나무회집",
+            image: "images/bamnamu_hoejib.png",
             rating: 4.6,
             distance: "신교대 차로 13분",
             location: "강원특별자치도 양구군 양구읍 금강산로 300",
@@ -167,8 +188,41 @@ const YANGGU_DATA = {
             mapLink: "https://map.kakao.com/?q=양구 밤나무회집",
             benefits: ["수제비사리 무한", "룸 완비"],
             benefitDesc: "매운탕 주문 및 장병 확인 시 손수 빚은 쫄깃한 수제 수제비 사리 무제한 제공",
+            menu: "송어 비빔회 (2인) 35,000원 / 잡어 매운탕 40,000원",
             desc: "파로호와 소양강 인근에서 오랫동안 사랑받은 송어 비빔회와 민물 매운탕 맛집입니다. 육고기가 부담스러워 깔끔한 붉은빛 송어회와 칼칼한 국물의 개운한 매운탕을 선호하시는 부모님께 안성맞춤입니다.",
             tags: ["송어비빔회", "매운탕전문", "소양강뷰"]
+        },
+        {
+            id: "food-7",
+            category: "restaurant",
+            name: "금돼지상회",
+            image: "images/geumdaeji_sanghoe.png",
+            rating: 4.6,
+            distance: "신교대 차로 9분",
+            location: "강원특별자치도 양구군 양구읍 중심로 201",
+            phone: "033-481-6661",
+            mapLink: "https://map.kakao.com/?q=양구 금돼지상회",
+            benefits: ["음료 서비스", "단체 환영"],
+            benefitDesc: "군 장병 동반 테이블 주문 시 톡 쏘는 탄산음료 1캔 무료 제공",
+            menu: "생삼겹살 (200g) 15,000원 / 돼지갈비 15,000원",
+            desc: "양구읍 상리에 위치한 숨겨진 삼겹살 및 생고기 구이 한식당입니다. 숯불에 구운 두툼한 생삼겹살과 맛깔스러운 파무침, 손수 만드신 풍성한 쌈채소 밑반찬이 어우러져 아들과 든든히 배를 채우기 좋습니다.",
+            tags: ["생삼겹살", "양구읍시내", "단체환영"]
+        },
+        {
+            id: "food-8",
+            category: "restaurant",
+            name: "양구고깃집",
+            image: "images/yanggu_gogitjib.png",
+            rating: 4.7,
+            distance: "신교대 차로 9분",
+            location: "강원특별자치도 양구군 양구읍 중심로 188",
+            phone: "033-481-0852",
+            mapLink: "https://map.kakao.com/?q=양구 양구고깃집",
+            benefits: ["국수 서비스", "가성비 삼겹살"],
+            benefitDesc: "군 장병 동반 테이블 3인분 이상 주문 시 얼큰하고 시원한 김치말이국수 1그릇 무료 제공",
+            menu: "냉동삼겹살 (180g) 12,000원 / 대패삼겹살 11,000원",
+            desc: "양구읍 상권 중심가에 위치한 깔끔하고 모던한 감성의 냉동 삼겹살(냉삼) 전문점입니다. 잡내가 전혀 없고 고소한 한 입 크기 삼겹살에 볶음밥과 김치국수로 마감하면 장병들이 매우 만족해합니다.",
+            tags: ["냉동삼겹살", "김치말이국수", "가성비최고"]
         },
 
         // 카페 (3개 실제/현실적 카페 반영)
@@ -176,6 +230,7 @@ const YANGGU_DATA = {
             id: "cafe-1",
             category: "cafe",
             name: "카페포레스트",
+            image: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&auto=format&fit=crop",
             rating: 4.8,
             distance: "신교대 차로 9분",
             location: "강원특별자치도 양구군 양구읍 사명산길 66",
@@ -183,6 +238,7 @@ const YANGGU_DATA = {
             mapLink: "https://map.kakao.com/?q=양구 카페포레스트",
             benefits: ["제조음료 10% 할인", "정원 테라스"],
             benefitDesc: "군 장병 동반 방문 시 모든 에이드 및 커피 종류 10% 현장 할인 혜택 제공",
+            menu: "수제 자몽청 에이드 5,500원 / 아메리카노 4,000원",
             desc: "가든앤포레스트 단지 내에 위치한 고즈넉한 숲속 정원 감성의 카페입니다. 수제 자몽청 에이드, 직접 달인 한방 대추차 등이 다양하게 구비되어 장병과 부모님이 조용히 대화 나누기 안성맞춤입니다.",
             tags: ["야외정원", "수제과일청", "힐링전경"]
         },
@@ -190,6 +246,7 @@ const YANGGU_DATA = {
             id: "cafe-2",
             category: "cafe",
             name: "카페 르쏠레이",
+            image: "https://images.unsplash.com/photo-1533777857889-4be7c70b33f7?w=600&auto=format&fit=crop",
             rating: 4.7,
             distance: "신교대 차로 8분",
             location: "강원특별자치도 양구군 양구읍 하리 475",
@@ -197,13 +254,15 @@ const YANGGU_DATA = {
             mapLink: "https://map.kakao.com/?q=양구 카페 르쏠레이",
             benefits: ["디저트 쿠키 증정", "루프탑 뷰"],
             benefitDesc: "음료 주문 및 군인 신분증/외출증 확인 시 초코 스모어 쿠키 1개 서비스",
+            menu: "아메리카노 4,500원 / 초코 스모어 쿠키 3,000원",
             desc: "양구 읍내와 파로호 자락을 시원하게 바라볼 수 있는 전망 좋은 언덕 위 루프탑 카페입니다. 세련된 인테리어와 디저트 조각 케이크가 맛있어 복귀 전 예쁜 사진을 찍어주기에 최고의 장소입니다.",
-            tags: ["전망루프탑", "브런치앤커피", "사진명소"]
+            tags: ["전망좋은루프탑", "브런치앤커피", "사진명소"]
         },
         {
             id: "cafe-3",
             category: "cafe",
             name: "커피정원",
+            image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop",
             rating: 4.8,
             distance: "신교대 차로 10분",
             location: "강원특별자치도 양구군 양구읍 파로호로 869",
@@ -211,6 +270,7 @@ const YANGGU_DATA = {
             mapLink: "https://map.kakao.com/?q=양구 커피정원",
             benefits: ["초콜릿 서비스", "식물원 분위기"],
             benefitDesc: "군 장병 동반 테이블 음료 주문 시 수제 피칸 초콜릿 1조각 무료 서비스",
+            menu: "카푸치노 5,000원 / 수제 피칸 초콜릿 2,500원",
             desc: "파로호 변에 위치해 싱그러운 화초와 화려한 꽃들로 가득한 온실 식물원 느낌의 플라워 카페입니다. 눈이 맑아지는 초록빛 인테리어 속에서 따뜻한 카푸치노를 마시며 여유롭게 쉴 수 있습니다.",
             tags: ["온실화원", "플라워카페", "파로호인접"]
         }
@@ -276,7 +336,7 @@ const YANGGU_DATA = {
                     time: "11:20 - 13:00",
                     title: "명품 강원 한우 구이로 화려한 몸보신",
                     place: "강원한우정육식당 (식당)",
-                    desc: "아들이 고대하던 꽃등심과 살치살 구이로 든든한 소고기 몸보신을 시켜주며 개별 룸에서 편안하게 식사를 즐깁니다."
+                    desc: "아들이 고대하던 꽃등심 and 살치살 구이로 든든한 소고기 몸보신을 시켜주며 개별 룸에서 편안하게 식사를 즐깁니다."
                 },
                 {
                     time: "13:10 - 15:10",
