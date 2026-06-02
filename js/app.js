@@ -1554,6 +1554,11 @@ function initVideoGenerator() {
     const progressBar = document.getElementById("render-progress-bar");
     const progressText = document.getElementById("render-progress-text");
     const motionButtons = document.querySelectorAll(".motion-btn");
+    const selectedTray = document.getElementById("selected-images-tray");
+    const btnClearTray = document.getElementById("btn-clear-tray");
+    const overlayTextInput = document.getElementById("video-overlay-text");
+    const toggleVignette = document.getElementById("toggle-vignette");
+    const toggleWarmFilter = document.getElementById("toggle-warm-filter");
 
     const presets = [
         { name: "강원한우", src: "images/gangwon_hanwoo.jpg" },
@@ -1566,125 +1571,381 @@ function initVideoGenerator() {
         { name: "재래식손두부", src: "images/yanggu_sondubu.jpg" }
     ];
 
-    let activeImage = new Image();
-    let activeImageLoaded = false;
-    let activeMotion = "zoomIn"; // default
+    // 다중 이미지 데이터 모델
+    let selectedImages = []; // { id, src, imgEl, loaded, name }
+    let activeMotion = "zoomIn"; // zoomIn, panRight, dissolve, mixed
     let isRecording = false;
     let animFrameId = null;
     let startTime = null;
 
-    // 1. 프리셋 이미지 그리드 생성
+    // 1. 프리셋 이미지 그리드 생성 및 이벤트
     presets.forEach((preset, idx) => {
         const item = document.createElement("div");
-        item.className = `preset-item ${idx === 0 ? 'active' : ''}`;
+        item.className = "preset-item";
         item.style.backgroundImage = `url('${preset.src}')`;
-        item.innerHTML = `<span>${preset.name}</span>`;
+        item.innerHTML = `
+            <div class="select-badge"></div>
+            <span>${preset.name}</span>
+        `;
         item.dataset.src = preset.src;
+        item.dataset.name = preset.name;
 
         item.addEventListener("click", () => {
-            document.querySelectorAll(".preset-item").forEach(el => el.classList.remove("active"));
-            item.classList.add("active");
-            loadImage(preset.src);
+            togglePresetSelection(preset.src, preset.name, item);
         });
 
         presetGrid.appendChild(item);
     });
 
-    // 2. 업로더 처리
-    if (uploadTrigger && uploader) {
-        uploadTrigger.addEventListener("click", () => uploader.click());
-        uploader.addEventListener("change", (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    document.querySelectorAll(".preset-item").forEach(el => el.classList.remove("active"));
-                    loadImage(event.target.result);
-                };
-                reader.readAsDataURL(file);
+    // 프리셋 선택 토글 함수
+    function togglePresetSelection(src, name, element) {
+        const existingIdx = selectedImages.findIndex(img => img.src === src);
+        
+        if (existingIdx !== -1) {
+            // 이미 선택된 경우 제거
+            selectedImages.splice(existingIdx, 1);
+            element.classList.remove("active");
+            const badge = element.querySelector(".select-badge");
+            if (badge) badge.innerText = "";
+        } else {
+            // 새로 선택된 경우 (최대 5장 제한)
+            if (selectedImages.length >= 5) {
+                showToast("사진은 최대 5장까지 선택할 수 있습니다!");
+                return;
+            }
+            
+            const newImg = {
+                id: "img-" + Date.now() + Math.random().toString(36).substr(2, 5),
+                src: src,
+                imgEl: new Image(),
+                loaded: false,
+                name: name
+            };
+
+            newImg.imgEl.onload = () => {
+                newImg.loaded = true;
+                updateTrayUI();
+            };
+            newImg.imgEl.src = src;
+
+            selectedImages.push(newImg);
+            element.classList.add("active");
+        }
+        
+        updatePresetBadges();
+        updateTrayUI();
+        triggerLoopRestart();
+    }
+
+    // 프리셋 그리드의 순서 뱃지 갱신
+    function updatePresetBadges() {
+        const presetItems = presetGrid.querySelectorAll(".preset-item");
+        presetItems.forEach(item => {
+            const src = item.dataset.src;
+            const index = selectedImages.findIndex(img => img.src === src);
+            const badge = item.querySelector(".select-badge");
+            if (badge) {
+                if (index !== -1) {
+                    item.classList.add("active");
+                    badge.innerText = index + 1; // 1부터 순번 기입
+                } else {
+                    item.classList.remove("active");
+                    badge.innerText = "";
+                }
             }
         });
     }
 
-    // 3. 모션 버튼 전환
+    // 2. 선택된 사진 트레이 UI 갱신
+    function updateTrayUI() {
+        if (!selectedTray) return;
+        selectedTray.innerHTML = "";
+
+        if (selectedImages.length === 0) {
+            selectedTray.innerHTML = `<div class="tray-empty-msg">선택한 사진이 없습니다. 썸네일을 누르거나 직접 올려보세요!</div>`;
+            return;
+        }
+
+        selectedImages.forEach((img, idx) => {
+            const item = document.createElement("div");
+            item.className = "tray-item";
+            if (img.loaded) {
+                item.style.backgroundImage = `url('${img.src}')`;
+            } else {
+                item.style.backgroundColor = "var(--border)";
+            }
+
+            item.innerHTML = `
+                <div class="tray-index-badge">${idx + 1}</div>
+                <button class="btn-remove" title="삭제">×</button>
+            `;
+
+            // 삭제 버튼 바인딩
+            item.querySelector(".btn-remove").addEventListener("click", (e) => {
+                e.stopPropagation();
+                removeImage(img.id);
+            });
+
+            selectedTray.appendChild(item);
+        });
+    }
+
+    // 이미지 리스트에서 제거
+    function removeImage(id) {
+        selectedImages = selectedImages.filter(img => img.id !== id);
+        updatePresetBadges();
+        updateTrayUI();
+        triggerLoopRestart();
+    }
+
+    // 3. 다중 파일 업로드 처리
+    if (uploadTrigger && uploader) {
+        uploadTrigger.addEventListener("click", () => uploader.click());
+        uploader.addEventListener("change", (e) => {
+            const files = Array.from(e.target.files);
+            
+            // 용량 및 갯수 제한 처리
+            const remainingSlots = 5 - selectedImages.length;
+            if (remainingSlots <= 0) {
+                showToast("사진은 최대 5장까지만 선택 가능합니다.");
+                uploader.value = "";
+                return;
+            }
+
+            const filesToLoad = files.slice(0, remainingSlots);
+            
+            filesToLoad.forEach((file, idx) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const newImg = {
+                        id: "img-upload-" + Date.now() + Math.random().toString(36).substr(2, 5),
+                        src: event.target.result,
+                        imgEl: new Image(),
+                        loaded: false,
+                        name: file.name.substring(0, 8)
+                    };
+                    
+                    newImg.imgEl.onload = () => {
+                        newImg.loaded = true;
+                        updateTrayUI();
+                    };
+                    newImg.imgEl.src = event.target.result;
+                    
+                    selectedImages.push(newImg);
+                    updateTrayUI();
+                    triggerLoopRestart();
+                };
+                reader.readAsDataURL(file);
+            });
+
+            if (files.length > remainingSlots) {
+                showToast(`남은 공간 부족으로 ${remainingSlots}장의 이미지만 로드되었습니다.`);
+            }
+
+            uploader.value = ""; // 파일 선택 초기화
+        });
+    }
+
+    // 트레이 전체 비우기
+    if (btnClearTray) {
+        btnClearTray.addEventListener("click", () => {
+            if (selectedImages.length === 0) return;
+            selectedImages = [];
+            updatePresetBadges();
+            updateTrayUI();
+            triggerLoopRestart();
+            showToast("선택 목록을 모두 비웠습니다.");
+        });
+    }
+
+    // 4. 모션 버튼 설정
     motionButtons.forEach(btn => {
         btn.addEventListener("click", function() {
             motionButtons.forEach(b => b.classList.remove("active"));
             this.classList.add("active");
             activeMotion = this.dataset.motion;
+            triggerLoopRestart();
         });
     });
 
-    // 이미지 로드 함수
-    function loadImage(src) {
-        activeImageLoaded = false;
-        activeImage = new Image();
-        activeImage.onload = () => {
-            activeImageLoaded = true;
-            if (!isRecording) {
-                startTime = performance.now();
-                startPreviewLoop();
-            }
-        };
-        activeImage.src = src;
+    // 루프 재시작 트리거
+    function triggerLoopRestart() {
+        if (!isRecording) {
+            startTime = performance.now();
+            startPreviewLoop();
+        }
     }
 
-    // 초기 첫 이미지 로드
-    loadImage(presets[0].src);
-
-    // 실시간 루프 드로잉
-    function drawFrame(progress) {
-        // progress: 0.0 ~ 1.0
-        ctx.fillStyle = "#000000";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        if (!activeImageLoaded) return;
-
-        ctx.save();
-
-        const canvasRatio = canvas.width / canvas.height;
-        const imgRatio = activeImage.width / activeImage.height;
-        let sWidth, sHeight, sx, sy;
-
-        if (imgRatio > canvasRatio) {
-            sHeight = activeImage.height;
-            sWidth = activeImage.height * canvasRatio;
-            sx = (activeImage.width - sWidth) / 2;
-            sy = 0;
-        } else {
-            sWidth = activeImage.width;
-            sHeight = activeImage.width / canvasRatio;
-            sx = 0;
-            sy = (activeImage.height - sHeight) / 2;
+    // 이미지의 개별 무빙 계산 헬퍼
+    function getMotionTransform(imgIdx, progress) {
+        let motion = activeMotion;
+        if (motion === "mixed") {
+            // 혼합 모션인 경우 홀수 인덱스는 우측 패닝, 짝수 인덱스는 줌인 적용
+            motion = (imgIdx % 2 === 0) ? "zoomIn" : "panRight";
         }
 
         let scale = 1.0;
         let tx = 0;
         let ty = 0;
-        let alpha = 1.0;
 
-        if (activeMotion === "zoomIn") {
-            scale = 1.02 + progress * 0.18; // 1.02 ~ 1.20배 줌인
-        } else if (activeMotion === "panRight") {
-            scale = 1.15; // 기본 줌 확대 후
-            tx = (progress - 0.5) * -50; // 좌측에서 우측으로 50px 패닝
-        } else if (activeMotion === "dissolve") {
-            scale = 1.05 + progress * 0.10;
-            if (progress < 0.3) {
-                alpha = progress / 0.3; // 첫 1.5초(30%) 동안 서서히 페이드인
-            } else {
-                alpha = 1.0;
-            }
+        if (motion === "zoomIn") {
+            scale = 1.02 + progress * 0.16; // 1.02 -> 1.18 줌인
+        } else if (motion === "panRight") {
+            scale = 1.15;
+            tx = (progress - 0.5) * -50; // 좌에서 우 패닝
+        } else if (motion === "dissolve") {
+            scale = 1.05 + progress * 0.08;
         }
+
+        return { scale, tx, ty };
+    }
+
+    // 단일 이미지 드로잉 코어
+    function drawSingleImage(imgObj, progress, index, alpha = 1.0) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+
+        const canvasRatio = canvas.width / canvas.height;
+        const imgRatio = imgObj.width / imgObj.height;
+        let sWidth, sHeight, sx, sy;
+
+        if (imgRatio > canvasRatio) {
+            sHeight = imgObj.height;
+            sWidth = imgObj.height * canvasRatio;
+            sx = (imgObj.width - sWidth) / 2;
+            sy = 0;
+        } else {
+            sWidth = imgObj.width;
+            sHeight = imgObj.width / canvasRatio;
+            sx = 0;
+            sy = (imgObj.height - sHeight) / 2;
+        }
+
+        // 개별 무빙 대입
+        const { scale, tx, ty } = getMotionTransform(index, progress);
 
         ctx.translate(canvas.width / 2 + tx, canvas.height / 2 + ty);
         ctx.scale(scale, scale);
         ctx.translate(-canvas.width / 2, -canvas.height / 2);
 
-        ctx.globalAlpha = alpha;
-        ctx.drawImage(activeImage, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
-
+        ctx.drawImage(imgObj, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
         ctx.restore();
+    }
+
+    // 5. 종합 비디오 프레임 드로잉 렌더링
+    function drawFrame(progress) {
+        // progress: 0.0 ~ 1.0
+        // 캔버스 기본 블랙 배경 칠하기
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const loadedImages = selectedImages.filter(img => img.loaded);
+        const count = loadedImages.length;
+
+        if (count === 0) {
+            // 선택된 이미지가 없는 상태의 안내 화면
+            ctx.save();
+            ctx.fillStyle = "#FFFFFF";
+            ctx.font = "bold 20px 'Pretendard', sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("사진을 선택해 주세요 📸", canvas.width / 2, canvas.height / 2);
+            ctx.font = "14px 'Pretendard', sans-serif";
+            ctx.fillStyle = "#888888";
+            ctx.fillText("최대 5장까지 슬라이드쇼가 가능합니다", canvas.width / 2, canvas.height / 2 + 30);
+            ctx.restore();
+            return;
+        }
+
+        if (count === 1) {
+            // 단일 이미지 출력
+            drawSingleImage(loadedImages[0].imgEl, progress, 0, 1.0);
+        } else {
+            // 다중 이미지 슬라이드쇼 렌더링 + 크로스 페이드(디졸브) 전환 로직
+            const slice = 1.0 / count; // 각 이미지당 시간 배분
+            const rawIndex = progress / slice;
+            let index = Math.floor(rawIndex);
+            if (index >= count) index = count - 1;
+
+            const sliceProgress = rawIndex - index; // 해당 이미지 슬라이드 구간 내부 progress (0.0 ~ 1.0)
+            const nextIndex = (index + 1) % count;
+
+            // 크로스 페이드 전환 구간 (마지막 15% 시간 범위 동안 겹쳐 그려 디졸브)
+            const transitionThreshold = 0.85;
+
+            if (sliceProgress > transitionThreshold) {
+                // 이전/다음 이미지 보간비율 t 구하기 (0.0 ~ 1.0)
+                const t = (sliceProgress - transitionThreshold) / (1.0 - transitionThreshold);
+                
+                // 1. 먼저 이전 장(현재 장) 그리기 (모션은 끝까지 연속 진행)
+                drawSingleImage(loadedImages[index].imgEl, sliceProgress, index, 1.0 - t);
+                
+                // 2. 그 위에 다음 장을 globalAlpha 투명도를 서서히 올리며 겹쳐 그리기
+                // 다음 이미지의 내부 모션은 0부터 시작하게 t 비율을 대입
+                drawSingleImage(loadedImages[nextIndex].imgEl, t * 0.15, nextIndex, t);
+            } else {
+                // 일반 구간: 단독 드로잉
+                // sliceProgress가 0.85가 한계이므로 모션 왜곡을 줄이기 위해 보정 대입
+                const adjustedProgress = sliceProgress / transitionThreshold;
+                drawSingleImage(loadedImages[index].imgEl, adjustedProgress * 0.85, index, 1.0);
+            }
+        }
+
+        // 🎬 필터 추가 1: 비네팅 필터
+        if (toggleVignette && toggleVignette.checked) {
+            ctx.save();
+            const grad = ctx.createRadialGradient(
+                canvas.width / 2, canvas.height / 2, canvas.height * 0.25,
+                canvas.width / 2, canvas.height / 2, canvas.height * 0.72
+            );
+            grad.addColorStop(0, "rgba(0, 0, 0, 0)");
+            grad.addColorStop(0.5, "rgba(0, 0, 0, 0.2)");
+            grad.addColorStop(1, "rgba(0, 0, 0, 0.7)");
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.restore();
+        }
+
+        // 🎬 필터 추가 2: 감성 웜 필터
+        if (toggleWarmFilter && toggleWarmFilter.checked) {
+            ctx.save();
+            ctx.fillStyle = "rgba(255, 145, 0, 0.055)"; // 필름 느낌의 미세 엠버/황색 레이어
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.restore();
+        }
+
+        // ✍️ 하단 커스텀 자막 텍스트 드로잉
+        const subText = overlayTextInput ? overlayTextInput.value.trim() : "";
+        if (subText) {
+            ctx.save();
+            ctx.font = "bold 26px 'Pretendard', sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            const textWidth = ctx.measureText(subText).width;
+            const rectWidth = Math.max(textWidth + 48, 220);
+            const rectHeight = 56;
+            const rectX = (canvas.width - rectWidth) / 2;
+            const rectY = canvas.height - 110;
+
+            // 반투명 블랙 백그라운드 필렉트
+            ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+            ctx.beginPath();
+            if (ctx.roundRect) {
+                ctx.roundRect(rectX, rectY, rectWidth, rectHeight, 28);
+            } else {
+                ctx.rect(rectX, rectY, rectWidth, rectHeight);
+            }
+            ctx.fill();
+
+            // 그림자 텍스트 합성
+            ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+            ctx.fillText(subText, canvas.width / 2 + 1, rectY + rectHeight / 2 + 1);
+
+            // 화이트 리얼 텍스트 합성
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillText(subText, canvas.width / 2, rectY + rectHeight / 2);
+            ctx.restore();
+        }
     }
 
     // 프리뷰 애니메이션 루프
@@ -1695,7 +1956,7 @@ function initVideoGenerator() {
             if (isRecording) return;
             if (!startTime) startTime = timestamp;
             
-            // 5초(5000ms) 주기로 반복
+            // 5초(5000ms) 무한 반복
             const elapsed = timestamp - startTime;
             const progress = (elapsed % 5000) / 5000;
             
@@ -1705,16 +1966,39 @@ function initVideoGenerator() {
         animFrameId = requestAnimationFrame(tick);
     }
 
-    // 4. 비디오 녹화 및 내보내기
+    // 최초 기본 로드 (presets의 첫 번째 사진을 기본 선택으로 세팅)
+    const initPreset = presets[0];
+    const initImg = {
+        id: "img-default",
+        src: initPreset.src,
+        imgEl: new Image(),
+        loaded: false,
+        name: initPreset.name
+    };
+    initImg.imgEl.onload = () => {
+        initImg.loaded = true;
+        updatePresetBadges();
+        updateTrayUI();
+        triggerLoopRestart();
+    };
+    initImg.imgEl.src = initPreset.src;
+    selectedImages.push(initImg);
+
+    // 6. 비디오 녹화 및 내보내기 (MediaRecorder)
     if (btnRender) {
         btnRender.addEventListener("click", () => {
-            if (!activeImageLoaded || isRecording) return;
+            const loadedCount = selectedImages.filter(img => img.loaded).length;
+            if (loadedCount === 0) {
+                showToast("최소 1장 이상의 사진을 리스트에 추가해 주세요!");
+                return;
+            }
+            if (isRecording) return;
 
             isRecording = true;
             if (animFrameId) cancelAnimationFrame(animFrameId);
 
             btnRender.setAttribute("disabled", "true");
-            btnRender.innerHTML = '<i data-lucide="loader" class="spin"></i> 렌더링 중...';
+            btnRender.innerHTML = '<i data-lucide="loader" class="spin"></i> 고화질 변환 중...';
             if (typeof lucide !== "undefined") lucide.createIcons({ node: btnRender });
 
             progressContainer.style.display = "block";
@@ -1722,7 +2006,7 @@ function initVideoGenerator() {
             progressBar.style.width = "0%";
             progressText.innerText = "영상을 만드는 중... 0%";
 
-            // captureStream(30 fps) 지원 여부 확인
+            // captureStream 지원 검증
             let stream;
             try {
                 stream = canvas.captureStream(30);
@@ -1771,14 +2055,14 @@ function initVideoGenerator() {
                 a.click();
                 document.body.removeChild(a);
                 
-                showToast("5초 시네마틱 영상 다운로드가 완료되었습니다!");
+                showToast("5초 고화질 릴스 영상 다운로드 완료!");
                 resetRenderUI();
             };
 
             // 녹화 시작
             mediaRecorder.start();
 
-            // 프레임 바이 프레임 강제 렌더링 루프 (5초 = 150프레임 @ 30fps)
+            // 프레임 바이 프레임 강제 동기화 렌더링 루프 (5초 = 150프레임 @ 30fps)
             let currentFrame = 0;
             const totalFrames = 150;
 
@@ -1797,7 +2081,6 @@ function initVideoGenerator() {
                 progressText.innerText = `영상을 만드는 중... ${percent}%`;
 
                 currentFrame++;
-                // 30fps 속도로 렌더 진행 시뮬레이션
                 setTimeout(renderFrameStep, 1000 / 30);
             }
 
@@ -1817,6 +2100,94 @@ function initVideoGenerator() {
         }
         startTime = performance.now();
         startPreviewLoop();
+    }
+
+    // 5. SNS 공유 및 업로드 가이드 연동
+    const btnKakao = document.getElementById("btn-share-kakao");
+    const btnInstagram = document.getElementById("btn-share-instagram");
+    const btnFacebook = document.getElementById("btn-share-facebook");
+    const snsModal = document.getElementById("sns-guide-modal");
+    const snsModalTitle = document.getElementById("sns-modal-title");
+    const snsModalBody = document.getElementById("sns-modal-body");
+    const snsModalCloseBtn = document.getElementById("sns-modal-close-btn");
+
+    let targetSnsUrl = "";
+
+    if (btnKakao) {
+        btnKakao.addEventListener("click", () => {
+            const shareText = `[양구온길] 아들을 위한 면회코스 일정과 맛집 소개 5초 영상을 제작했습니다. 아래 링크에서 확인하고 나만의 5초 홍보 영상도 직접 만들어보세요!\n\n➡️ ${window.location.origin}${window.location.pathname.replace("video-generator.html", "index.html")}`;
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(shareText).then(() => {
+                    showToast("카카오톡 홍보 메시지가 복사되었습니다!");
+                }).catch(() => {
+                    fallbackCopyTextToClipboardSilently(shareText);
+                    showToast("카카오톡 홍보 메시지가 복사되었습니다!");
+                });
+            } else {
+                fallbackCopyTextToClipboardSilently(shareText);
+                showToast("카카오톡 홍보 메시지가 복사되었습니다!");
+            }
+
+            // 카카오톡 공유 picker URL 열기
+            setTimeout(() => {
+                window.open("https://sharer.kakao.com/talk/friends/picker/link", "_blank");
+            }, 1000);
+        });
+    }
+
+    function showSnsModal(title, bodyText, redirectUrl) {
+        if (!snsModal || !snsModalTitle || !snsModalBody) return;
+        snsModalTitle.innerHTML = `<i data-lucide="info" style="width: 20px; height: 20px;"></i> ${title}`;
+        snsModalBody.innerHTML = bodyText;
+        targetSnsUrl = redirectUrl;
+
+        if (typeof lucide !== "undefined") {
+            lucide.createIcons({ node: snsModalTitle });
+        }
+
+        snsModal.classList.add("active");
+    }
+
+    if (btnInstagram) {
+        btnInstagram.addEventListener("click", () => {
+            const guideText = `
+                <p style="margin-bottom: 8px;"><strong>📸 인스타그램 업로드 안내:</strong></p>
+                <ol style="padding-left: 20px; margin-bottom: 12px;">
+                    <li style="margin-bottom: 4px;">방금 내보낸 5초 영상 파일이 <strong>다운로드 폴더</strong>에 저장되었습니다.</li>
+                    <li style="margin-bottom: 4px;">인스타그램 앱/웹으로 이동한 후, 화면 하단의 <strong>[+] 만들기</strong> 버튼을 누릅니다.</li>
+                    <li style="margin-bottom: 4px;"><strong>릴스(Reels) 또는 피드 게시물</strong>을 선택하고 저장된 5초 영상을 선택해 업로드합니다.</li>
+                </ol>
+                <span style="font-size: 0.82rem; color: var(--accent); font-weight: 700;">* 21사단 백두산 신교대 수료식 추억을 인스타 친구들에게 공유해 보세요!</span>
+            `;
+            showSnsModal("인스타그램 릴스/피드 등록", guideText, "https://www.instagram.com/");
+        });
+    }
+
+    if (btnFacebook) {
+        btnFacebook.addEventListener("click", () => {
+            const guideText = `
+                <p style="margin-bottom: 8px;"><strong>👥 페이스북 업로드 안내:</strong></p>
+                <ol style="padding-left: 20px; margin-bottom: 12px;">
+                    <li style="margin-bottom: 4px;">방금 내보낸 5초 영상 파일이 <strong>다운로드 폴더</strong>에 저장되었습니다.</li>
+                    <li style="margin-bottom: 4px;">페이스북 앱/웹으로 이동해 상단의 <strong>"무슨 생각을 하고 계신가요?"</strong> 또는 만들기 아이콘을 누릅니다.</li>
+                    <li style="margin-bottom: 4px;"><strong>사진/동영상</strong>을 눌러 다운로드된 영상을 선택하여 피드나 스토리에 공유해 보세요!</li>
+                </ol>
+                <span style="font-size: 0.82rem; color: var(--accent); font-weight: 700;">* 자랑하고 싶은 백두산 부대 백골 장병 아들의 전경을 공유해 보세요!</span>
+            `;
+            showSnsModal("페이스북 피드/스토리 등록", guideText, "https://www.facebook.com/");
+        });
+    }
+
+    if (snsModalCloseBtn) {
+        snsModalCloseBtn.addEventListener("click", () => {
+            if (snsModal) {
+                snsModal.classList.remove("active");
+            }
+            if (targetSnsUrl) {
+                window.open(targetSnsUrl, "_blank");
+            }
+        });
     }
 }
 
