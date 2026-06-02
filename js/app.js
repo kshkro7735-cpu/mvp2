@@ -16,6 +16,44 @@ document.addEventListener("DOMContentLoaded", () => {
         initContact();
     }
 
+    // 전화번호(tel:) 클릭 시 커스텀 처리 (데스크톱 및 모바일에서 모달 형식으로 명확히 노출 + 자동 복사)
+    document.addEventListener("click", (e) => {
+        const telLink = e.target.closest("a[href^='tel:']");
+        if (telLink) {
+            // 모달 안의 진짜 전화걸기 단추인 경우 이벤트를 차단하지 않고 실제 발신 처리
+            if (telLink.id === "phone-modal-call-btn") {
+                return;
+            }
+
+            e.preventDefault();
+            const phoneNum = telLink.getAttribute("href").replace("tel:", "");
+            
+            // 링크의 data-name 속성 또는 인접 카드 요소를 통해 상호명 확보
+            let shopName = telLink.getAttribute("data-name");
+            if (!shopName) {
+                const card = telLink.closest(".card");
+                if (card) {
+                    const titleSpan = card.querySelector(".shop-title span");
+                    if (titleSpan) {
+                        shopName = titleSpan.innerText;
+                    }
+                }
+            }
+
+            // 클립보드 복사 실행 (실패하더라도 모달이 보이기 때문에 사용성 유지)
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(phoneNum).catch(() => {
+                    fallbackCopyTextToClipboardSilently(phoneNum);
+                });
+            } else {
+                fallbackCopyTextToClipboardSilently(phoneNum);
+            }
+
+            // 커스텀 폰 팝업 모달 노출
+            showPhoneModal(phoneNum, shopName);
+        }
+    });
+
     // Lucide 아이콘 활성화
     if (typeof lucide !== "undefined") {
         lucide.createIcons();
@@ -28,9 +66,18 @@ document.addEventListener("DOMContentLoaded", () => {
 function injectCommonUI() {
     const currentPage = document.body.dataset.page;
 
+    // 다크모드 설정 적용
+    const isDarkMode = localStorage.getItem("yanggu_dark_mode") === "enabled";
+    if (isDarkMode) {
+        document.body.classList.add("dark-mode");
+    } else {
+        document.body.classList.remove("dark-mode");
+    }
+
     // 헤더 주입
     const headerPlaceholder = document.getElementById("header-placeholder");
     if (headerPlaceholder) {
+        const darkIcon = isDarkMode ? "sun" : "moon";
         headerPlaceholder.innerHTML = `
             <header class="app-header">
                 <a href="index.html" class="logo">
@@ -42,12 +89,38 @@ function injectCommonUI() {
                     <a href="directory.html" class="${currentPage === 'directory' ? 'active' : ''}">주변정보</a>
                     <a href="contact.html" class="${currentPage === 'contact' ? 'active' : ''}">제휴·문의</a>
                 </nav>
-                <a href="directory.html" class="header-action">
-                    <i data-lucide="percent" style="color: var(--accent); width: 18px; height: 18px;"></i>
-                    <span style="color: var(--accent)">군인혜택 찾기</span>
-                </a>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button id="btn-dark-toggle" style="background: none; border: none; cursor: pointer; color: var(--text-main); display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; transition: var(--transition);" title="야간 테마 토글">
+                        <i data-lucide="${darkIcon}" style="width: 20px; height: 20px;"></i>
+                    </button>
+                    <a href="directory.html" class="header-action" style="padding-left: 0;">
+                        <i data-lucide="percent" style="color: var(--accent); width: 18px; height: 18px;"></i>
+                        <span style="color: var(--accent)">군인혜택 찾기</span>
+                    </a>
+                </div>
             </header>
         `;
+
+        // 다크모드 토글 바인딩
+        const darkBtn = headerPlaceholder.querySelector("#btn-dark-toggle");
+        if (darkBtn) {
+            darkBtn.addEventListener("click", () => {
+                const nowDark = document.body.classList.toggle("dark-mode");
+                localStorage.setItem("yanggu_dark_mode", nowDark ? "enabled" : "disabled");
+                
+                const icon = darkBtn.querySelector("i");
+                if (icon) {
+                    if (nowDark) {
+                        icon.setAttribute("data-lucide", "sun");
+                    } else {
+                        icon.setAttribute("data-lucide", "moon");
+                    }
+                    if (typeof lucide !== "undefined") {
+                        lucide.createIcons({ node: darkBtn });
+                    }
+                }
+            });
+        }
     }
 
     // 하단 내비게이션 바 주입
@@ -129,6 +202,94 @@ function initHome() {
             li.innerText = tip;
             tipsList.appendChild(li);
         });
+    }
+
+    // D-Day 타이머 초기화
+    initDDay();
+
+    function initDDay() {
+        const picker = document.getElementById("dday-date-picker");
+        const btnSave = document.getElementById("btn-save-dday");
+        const btnReset = document.getElementById("btn-reset-dday");
+        const inputZone = document.getElementById("dday-input-zone");
+        const displayZone = document.getElementById("dday-display-zone");
+        const timerText = document.getElementById("dday-timer");
+        const targetText = document.getElementById("dday-target-text");
+
+        if (!picker || !btnSave) return;
+
+        let intervalId = null;
+
+        // 미래 날짜만 선택 가능하도록 제한
+        const todayStr = new Date().toISOString().split("T")[0];
+        picker.min = todayStr;
+
+        const savedDDay = localStorage.getItem("yanggu_dday");
+        if (savedDDay) {
+            startCountdown(savedDDay);
+        } else {
+            inputZone.style.display = "block";
+            displayZone.style.display = "none";
+        }
+
+        btnSave.addEventListener("click", () => {
+            const dateVal = picker.value;
+            if (!dateVal) {
+                alert("수료식 날짜를 선택해 주세요!");
+                return;
+            }
+            localStorage.setItem("yanggu_dday", dateVal);
+            startCountdown(dateVal);
+        });
+
+        btnReset.addEventListener("click", () => {
+            localStorage.removeItem("yanggu_dday");
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+            picker.value = "";
+            inputZone.style.display = "block";
+            displayZone.style.display = "none";
+        });
+
+        function startCountdown(targetDateStr) {
+            inputZone.style.display = "none";
+            displayZone.style.display = "block";
+
+            const targetDate = new Date(targetDateStr + "T10:00:00");
+            const daysOptions = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' };
+            targetText.innerText = `${targetDate.toLocaleDateString("ko-KR", daysOptions)} 오전 10:00 수료식`;
+
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+
+            updateTimer();
+            intervalId = setInterval(updateTimer, 1000);
+
+            function updateTimer() {
+                const now = new Date();
+                const diffMs = targetDate - now;
+
+                if (diffMs <= 0) {
+                    timerText.innerText = "수료식 당일입니다! 🎉";
+                    timerText.style.fontSize = "1.5rem";
+                    clearInterval(intervalId);
+                    intervalId = null;
+                    return;
+                }
+
+                const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                const diffSeconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+                const pad = num => String(num).padStart(2, "0");
+                timerText.innerText = `D-${diffDays}일 ${pad(diffHours)}:${pad(diffMinutes)}:${pad(diffSeconds)}`;
+                timerText.style.fontSize = "1.8rem";
+            }
+        }
     }
 }
 
@@ -291,7 +452,7 @@ function initCourseDetail() {
 
             actionButtonsHtml = `
                 <div class="flex-gap-10 mt-10">
-                    <a href="tel:${shop.phone}" class="btn btn-outline" style="padding: 10px 14px; font-size: 0.9rem; flex: 1;">
+                    <a href="tel:${shop.phone}" data-name="${shop.name}" class="btn btn-outline" style="padding: 10px 14px; font-size: 0.9rem; flex: 1;">
                         <i data-lucide="phone" style="width: 16px; height: 16px;"></i> 전화문의
                     </a>
                     <a href="${shop.mapLink}" target="_blank" class="btn btn-secondary" style="padding: 10px 14px; font-size: 0.9rem; flex: 1;">
@@ -322,6 +483,41 @@ function initCourseDetail() {
         
         timelineEl.appendChild(itemEl);
     });
+
+    // 요약 복사 및 인쇄 버튼 바인딩
+    const btnExportText = document.getElementById("btn-export-text");
+    const btnPrintPage = document.getElementById("btn-print-page");
+
+    if (btnExportText) {
+        btnExportText.addEventListener("click", () => {
+            let summaryText = `[양구온길] ${course.title}\n`;
+            summaryText += `소요시간: ${course.duration}\n`;
+            summaryText += `설명: ${course.summary}\n\n`;
+            summaryText += `◆ 상세 일정표 ◆\n`;
+            
+            course.timeline.forEach((item, idx) => {
+                summaryText += `${idx + 1}. [${item.time}] ${item.title}\n   장소: ${item.place}\n   내용: ${item.desc}\n\n`;
+            });
+            
+            summaryText += `* 복귀 마감 시간(17:00~17:30)을 준수해 안전하게 복귀해 주세요.`;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(summaryText).then(() => {
+                    showToast("일정 텍스트가 복사되었습니다!");
+                }).catch(err => {
+                    fallbackCopyTextToClipboard(summaryText);
+                });
+            } else {
+                fallbackCopyTextToClipboard(summaryText);
+            }
+        });
+    }
+
+    if (btnPrintPage) {
+        btnPrintPage.addEventListener("click", () => {
+            window.print();
+        });
+    }
 }
 
 /**
@@ -332,6 +528,7 @@ function initDirectory() {
     let currentCategory = urlParams.get("category") || "all";
     let searchQuery = urlParams.get("q") || "";
     let currentSort = "default";
+    let renderTimeout = null;
 
     const cardListEl = document.getElementById("shop-list-container");
     const searchInput = document.getElementById("shop-search-input");
@@ -385,200 +582,315 @@ function initDirectory() {
     }
 
     function renderShops() {
-        cardListEl.innerHTML = "";
+        if (renderTimeout) {
+            clearTimeout(renderTimeout);
+        }
 
-        // 북마크 로드
-        bookmarks = JSON.parse(localStorage.getItem("yanggu_bookmarks")) || [];
+        // 펄스 형태의 스켈레톤 로더 카드 우선 노출
+        cardListEl.innerHTML = `
+            <div class="skeleton-card">
+                <div class="skeleton-img"></div>
+                <div class="skeleton-info">
+                    <div class="skeleton-text title"></div>
+                    <div class="skeleton-text subtitle"></div>
+                    <div class="skeleton-text menu"></div>
+                    <div class="skeleton-text desc"></div>
+                    <div class="skeleton-text btn"></div>
+                </div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton-img"></div>
+                <div class="skeleton-info">
+                    <div class="skeleton-text title"></div>
+                    <div class="skeleton-text subtitle"></div>
+                    <div class="skeleton-text menu"></div>
+                    <div class="skeleton-text desc"></div>
+                    <div class="skeleton-text btn"></div>
+                </div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton-img"></div>
+                <div class="skeleton-info">
+                    <div class="skeleton-text title"></div>
+                    <div class="skeleton-text subtitle"></div>
+                    <div class="skeleton-text menu"></div>
+                    <div class="skeleton-text desc"></div>
+                    <div class="skeleton-text btn"></div>
+                </div>
+            </div>
+        `;
 
-        // 1. 카테고리 & 검색어 필터링 적용
-        let filtered = YANGGU_DATA.shops.filter(shop => {
-            // 카테고리 필터링 (저장한 곳 분기 포함)
-            let matchesCategory = false;
-            if (currentCategory === "all") {
-                matchesCategory = true;
-            } else if (currentCategory === "bookmarked") {
-                matchesCategory = bookmarks.includes(shop.id);
-            } else {
-                matchesCategory = shop.category === currentCategory;
+        renderTimeout = setTimeout(() => {
+            cardListEl.innerHTML = "";
+
+            // 북마크 로드
+            bookmarks = JSON.parse(localStorage.getItem("yanggu_bookmarks")) || [];
+
+            // 1. 카테고리 & 검색어 필터링 적용
+            let filtered = YANGGU_DATA.shops.filter(shop => {
+                // 카테고리 필터링 (저장한 곳 분기 포함)
+                let matchesCategory = false;
+                if (currentCategory === "all") {
+                    matchesCategory = true;
+                } else if (currentCategory === "bookmarked") {
+                    matchesCategory = bookmarks.includes(shop.id);
+                } else {
+                    matchesCategory = shop.category === currentCategory;
+                }
+
+                const matchesSearch = shop.name.toLowerCase().includes(searchQuery) ||
+                                      shop.tags.some(tag => tag.toLowerCase().includes(searchQuery)) ||
+                                      shop.desc.toLowerCase().includes(searchQuery) ||
+                                      shop.location.toLowerCase().includes(searchQuery);
+                return matchesCategory && matchesSearch;
+            });
+
+            // 2. 정렬 적용
+            if (currentSort === "rating") {
+                // 별점 높은 순
+                filtered.sort((a, b) => b.rating - a.rating);
+            } else if (currentSort === "distance") {
+                // 거리 가까운 순 (분 파싱 비교)
+                const getMinutes = (distStr) => {
+                    const matches = distStr.match(/\d+/);
+                    return matches ? parseInt(matches[0], 10) : 999;
+                };
+                filtered.sort((a, b) => getMinutes(a.distance) - getMinutes(b.distance));
             }
 
-            const matchesSearch = shop.name.toLowerCase().includes(searchQuery) ||
-                                  shop.tags.some(tag => tag.toLowerCase().includes(searchQuery)) ||
-                                  shop.desc.toLowerCase().includes(searchQuery) ||
-                                  shop.location.toLowerCase().includes(searchQuery);
-            return matchesCategory && matchesSearch;
-        });
+            // 레이더 드로잉 실행
+            drawRadar(filtered);
 
-        // 2. 정렬 적용
-        if (currentSort === "rating") {
-            // 별점 높은 순
-            filtered.sort((a, b) => b.rating - a.rating);
-        } else if (currentSort === "distance") {
-            // 거리 가까운 순 (분 파싱 비교)
-            const getMinutes = (distStr) => {
-                const matches = distStr.match(/\d+/);
-                return matches ? parseInt(matches[0], 10) : 999;
-            };
-            filtered.sort((a, b) => getMinutes(a.distance) - getMinutes(b.distance));
-        }
+            if (filtered.length === 0) {
+                cardListEl.innerHTML = `
+                    <div class="card text-center" style="padding: 40px 20px; grid-column: 1 / -1;">
+                        <p style="font-size: 1.1rem; color: var(--text-muted);">조건에 맞는 업체 정보가 없습니다.</p>
+                        <p style="font-size: 0.95rem; color: var(--text-muted); margin-top: 6px;">상호명이나 키워드를 다시 확인해 보세요.</p>
+                    </div>
+                `;
+                return;
+            }
 
-        if (filtered.length === 0) {
-            cardListEl.innerHTML = `
-                <div class="card text-center" style="padding: 40px 20px; grid-column: 1 / -1;">
-                    <p style="font-size: 1.1rem; color: var(--text-muted);">조건에 맞는 업체 정보가 없습니다.</p>
-                    <p style="font-size: 0.95rem; color: var(--text-muted); margin-top: 6px;">상호명이나 키워드를 다시 확인해 보세요.</p>
-                </div>
-            `;
-            return;
-        }
+            // 카드 렌더링
+            filtered.forEach(shop => {
+                const card = document.createElement("div");
+                card.className = "card shop-card";
+                card.style.position = "relative";
 
-        // 카드 렌더링
-        filtered.forEach(shop => {
-            const card = document.createElement("div");
-            card.className = "card shop-card";
-            card.style.position = "relative";
+                // 카테고리별 아이콘 결정
+                let categoryIcon = "map-pin";
+                let categoryName = "기타";
+                if (shop.category === "lodging") {
+                    categoryIcon = "home";
+                    categoryName = "숙소";
+                } else if (shop.category === "restaurant") {
+                    categoryIcon = "utensils";
+                    categoryName = "식당";
+                } else if (shop.category === "cafe") {
+                    categoryIcon = "coffee";
+                    categoryName = "카페";
+                }
 
-            // 카테고리별 아이콘 결정
+                // 군 장병 혜택 뱃지 리스트 만들기
+                const benefitBadgesHtml = shop.benefits.map(b => `<span class="badge badge-benefit"><i data-lucide="gift" style="width:12px; height:12px;"></i> ${b}</span>`).join("");
+                // 태그 리스트 만들기
+                const tagsHtml = shop.tags.map(t => `<span class="badge badge-tag">#${t}</span>`).join("");
+
+                // 이미지가 지정되어 있으면 배경 이미지로 사용하고, 없으면 카테고리별 그라데이션 사용
+                const hasImage = shop.image ? `background-image: url('${shop.image}'); background-size: cover; background-position: center;` : '';
+                const gradColor = shop.category === 'lodging' ? 'linear-gradient(135deg, #2C5E43, #D4AF37)' : (shop.category === 'restaurant' ? 'linear-gradient(135deg, #4A7A96, #2C5E43)' : 'linear-gradient(135deg, #8E7A6B, #2C5E43)');
+                const backgroundStyle = shop.image ? hasImage : `background: ${gradColor}`;
+                const iconOpacity = shop.image ? '0.15' : '0.9';
+
+                const isBookmarked = bookmarks.includes(shop.id);
+                
+                card.innerHTML = `
+                    <div class="shop-img-container" style="${backgroundStyle}">
+                        <div class="card-action-btns">
+                            <button class="btn-card-action btn-share" data-id="${shop.id}" data-name="${shop.name}" data-category="${shop.category}" title="공유하기">
+                                <i data-lucide="share-2" style="width: 15px; height: 15px;"></i>
+                            </button>
+                            <button class="btn-card-action btn-bookmark ${isBookmarked ? 'bookmarked' : ''}" data-id="${shop.id}" title="저장하기">
+                                <i data-lucide="heart" style="width: 15px; height: 15px;"></i>
+                            </button>
+                        </div>
+                        <div class="shop-img-placeholder">
+                            <i data-lucide="${categoryIcon}" style="color: #ffffff; width: 42px; height: 42px; opacity: ${iconOpacity};"></i>
+                            <span style="position: absolute; bottom: 12px; right: 12px; color: rgba(255,255,255,0.85); font-size: 0.85rem; font-weight: 700; background: rgba(0,0,0,0.4); padding: 4px 8px; border-radius: 4px;">${categoryName}</span>
+                        </div>
+                        <div class="shop-badge-container">
+                            <span class="badge badge-distance" style="background-color: var(--primary); color: #ffffff; border: none; font-size:0.8rem; box-shadow: 0 2px 5px rgba(0,0,0,0.15)">
+                                <i data-lucide="navigation" style="width: 10px; height: 10px;"></i> ${shop.distance}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="shop-info">
+                        <div class="shop-title">
+                            <span>${shop.name}</span>
+                            <span class="shop-rating"><i data-lucide="star" style="width:16px; height:16px; fill:#F59E0B; stroke:#F59E0B;"></i> ${shop.rating.toFixed(1)}</span>
+                        </div>
+                        <p style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 8px;">📍 ${shop.location}</p>
+                        <div style="margin-bottom: 12px;">
+                            ${benefitBadgesHtml}
+                            ${tagsHtml}
+                        </div>
+                        
+                        <!-- 대표 메뉴 정보 노출 -->
+                        <div class="shop-menu-box">
+                            <span>📋 대표 상품/메뉴</span>
+                            <p>${shop.menu}</p>
+                        </div>
+
+                        <p class="shop-desc">${shop.desc}</p>
+                        
+                        <div style="background-color: #FFF0ED; padding: 12px; border-radius: var(--radius-sm); border: 1px dashed #FFE0D9; margin-bottom: 16px;">
+                            <span style="color: var(--accent); font-weight: 700; font-size: 0.9rem;">🎁 군장병 혜택 상세</span>
+                            <p style="font-size: 0.9rem; color: var(--text-main); margin-top: 3px; line-height: 1.4;">${shop.benefitDesc}</p>
+                        </div>
+
+                        <div class="shop-actions">
+                            <a href="tel:${shop.phone}" data-name="${shop.name}" class="btn btn-outline" style="flex: 1;">
+                                <i data-lucide="phone"></i> 전화걸기
+                            </a>
+                            <a href="${shop.mapLink}" target="_blank" class="btn btn-primary" style="flex: 1;">
+                                <i data-lucide="map"></i> 길찾기
+                            </a>
+                        </div>
+                    </div>
+                `;
+                cardListEl.appendChild(card);
+            });
+
+            // 즐겨찾기 클릭 이벤트 연결
+            const bookmarkBtns = cardListEl.querySelectorAll(".btn-bookmark");
+            bookmarkBtns.forEach(btn => {
+                btn.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const id = this.dataset.id;
+                    let currentBookmarks = JSON.parse(localStorage.getItem("yanggu_bookmarks")) || [];
+                    
+                    if (currentBookmarks.includes(id)) {
+                        currentBookmarks = currentBookmarks.filter(item => item !== id);
+                        this.classList.remove("bookmarked");
+                        showToast("즐겨찾기에서 해제되었습니다.");
+                    } else {
+                        currentBookmarks.push(id);
+                        this.classList.add("bookmarked");
+                        showToast("즐겨찾기에 추가되었습니다!");
+                    }
+                    
+                    localStorage.setItem("yanggu_bookmarks", JSON.stringify(currentBookmarks));
+                    
+                    // 만약 '저장한 곳' 탭에서 클릭했다면 즉시 카드 삭제
+                    if (currentCategory === "bookmarked") {
+                        renderShops();
+                    }
+                });
+            });
+
+            // 공유하기 클릭 이벤트 연결
+            const shareBtns = cardListEl.querySelectorAll(".btn-share");
+            shareBtns.forEach(btn => {
+                btn.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const id = this.dataset.id;
+                    const name = this.dataset.name;
+                    const category = this.dataset.category;
+                    
+                    // 공유 주소 생성 ( directory.html?category=...&q=상점명 )
+                    const shareUrl = `${window.location.origin}${window.location.pathname}?category=${category}&q=${encodeURIComponent(name)}`;
+                    
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(shareUrl).then(() => {
+                            showToast("상점 링크가 복사되었습니다!");
+                        }).catch(err => {
+                            console.error("클립보드 복사 실패", err);
+                            fallbackCopyTextToClipboard(shareUrl);
+                        });
+                    } else {
+                        fallbackCopyTextToClipboard(shareUrl);
+                    }
+                });
+            });
+
+            // 주입 후 다시 한 번 아이콘 생성 (동적 주입된 요소 적용)
+            if (typeof lucide !== "undefined") {
+                lucide.createIcons();
+            }
+        }, 350);
+    }
+
+    function drawRadar(filtered) {
+        const container = document.getElementById("radar-markers-container");
+        if (!container) return;
+        container.innerHTML = "";
+
+        const centerX = 110;
+        const centerY = 110;
+
+        filtered.forEach((shop, index) => {
+            const matches = shop.distance.match(/\d+/);
+            const mins = matches ? parseInt(matches[0], 10) : 999;
+
+            let r = 90;
+            if (mins <= 5) {
+                r = 30;
+            } else if (mins <= 10) {
+                r = 60;
+            } else if (mins <= 15) {
+                r = 90;
+            } else {
+                r = 100;
+            }
+
+            const theta = (index * (2 * Math.PI / filtered.length)) - (Math.PI / 2);
+            const x = centerX + r * Math.cos(theta);
+            const y = centerY + r * Math.sin(theta);
+
             let categoryIcon = "map-pin";
-            let categoryName = "기타";
             if (shop.category === "lodging") {
                 categoryIcon = "home";
-                categoryName = "숙소";
             } else if (shop.category === "restaurant") {
                 categoryIcon = "utensils";
-                categoryName = "식당";
             } else if (shop.category === "cafe") {
                 categoryIcon = "coffee";
-                categoryName = "카페";
             }
 
-            // 군 장병 혜택 뱃지 리스트 만들기
-            const benefitBadgesHtml = shop.benefits.map(b => `<span class="badge badge-benefit"><i data-lucide="gift" style="width:12px; height:12px;"></i> ${b}</span>`).join("");
-            // 태그 리스트 만들기
-            const tagsHtml = shop.tags.map(t => `<span class="badge badge-tag">#${t}</span>`).join("");
+            const marker = document.createElement("div");
+            marker.className = "radar-marker";
+            marker.style.left = `${x}px`;
+            marker.style.top = `${y}px`;
+            marker.title = `${shop.name} (${shop.distance})`;
+            marker.dataset.id = shop.id;
+            marker.innerHTML = `<i data-lucide="${categoryIcon}"></i>`;
 
-            // 이미지가 지정되어 있으면 배경 이미지로 사용하고, 없으면 카테고리별 그라데이션 사용
-            const hasImage = shop.image ? `background-image: url('${shop.image}'); background-size: cover; background-position: center;` : '';
-            const gradColor = shop.category === 'lodging' ? 'linear-gradient(135deg, #2C5E43, #D4AF37)' : (shop.category === 'restaurant' ? 'linear-gradient(135deg, #4A7A96, #2C5E43)' : 'linear-gradient(135deg, #8E7A6B, #2C5E43)');
-            const backgroundStyle = shop.image ? hasImage : `background: ${gradColor}`;
-            const iconOpacity = shop.image ? '0.15' : '0.9';
-
-            const isBookmarked = bookmarks.includes(shop.id);
-            
-            card.innerHTML = `
-                <div class="shop-img-container" style="${backgroundStyle}">
-                    <div class="card-action-btns">
-                        <button class="btn-card-action btn-share" data-id="${shop.id}" data-name="${shop.name}" data-category="${shop.category}" title="공유하기">
-                            <i data-lucide="share-2" style="width: 15px; height: 15px;"></i>
-                        </button>
-                        <button class="btn-card-action btn-bookmark ${isBookmarked ? 'bookmarked' : ''}" data-id="${shop.id}" title="저장하기">
-                            <i data-lucide="heart" style="width: 15px; height: 15px;"></i>
-                        </button>
-                    </div>
-                    <div class="shop-img-placeholder">
-                        <i data-lucide="${categoryIcon}" style="color: #ffffff; width: 42px; height: 42px; opacity: ${iconOpacity};"></i>
-                        <span style="position: absolute; bottom: 12px; right: 12px; color: rgba(255,255,255,0.85); font-size: 0.85rem; font-weight: 700; background: rgba(0,0,0,0.4); padding: 4px 8px; border-radius: 4px;">${categoryName}</span>
-                    </div>
-                    <div class="shop-badge-container">
-                        <span class="badge badge-distance" style="background-color: var(--primary); color: #ffffff; border: none; font-size:0.8rem; box-shadow: 0 2px 5px rgba(0,0,0,0.15)">
-                            <i data-lucide="navigation" style="width: 10px; height: 10px;"></i> ${shop.distance}
-                        </span>
-                    </div>
-                </div>
-                <div class="shop-info">
-                    <div class="shop-title">
-                        <span>${shop.name}</span>
-                        <span class="shop-rating"><i data-lucide="star" style="width:16px; height:16px; fill:#F59E0B; stroke:#F59E0B;"></i> ${shop.rating.toFixed(1)}</span>
-                    </div>
-                    <p style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 8px;">📍 ${shop.location}</p>
-                    <div style="margin-bottom: 12px;">
-                        ${benefitBadgesHtml}
-                        ${tagsHtml}
-                    </div>
-                    
-                    <!-- 대표 메뉴 정보 노출 -->
-                    <div class="shop-menu-box">
-                        <span>📋 대표 상품/메뉴</span>
-                        <p>${shop.menu}</p>
-                    </div>
-
-                    <p class="shop-desc">${shop.desc}</p>
-                    
-                    <div style="background-color: #FFF0ED; padding: 12px; border-radius: var(--radius-sm); border: 1px dashed #FFE0D9; margin-bottom: 16px;">
-                        <span style="color: var(--accent); font-weight: 700; font-size: 0.9rem;">🎁 군장병 혜택 상세</span>
-                        <p style="font-size: 0.9rem; color: var(--text-main); margin-top: 3px; line-height: 1.4;">${shop.benefitDesc}</p>
-                    </div>
-
-                    <div class="shop-actions">
-                        <a href="tel:${shop.phone}" class="btn btn-outline" style="flex: 1;">
-                            <i data-lucide="phone"></i> 전화걸기
-                        </a>
-                        <a href="${shop.mapLink}" target="_blank" class="btn btn-primary" style="flex: 1;">
-                            <i data-lucide="map"></i> 길찾기
-                        </a>
-                    </div>
-                </div>
-            `;
-            cardListEl.appendChild(card);
-        });
-
-        // 즐겨찾기 클릭 이벤트 연결
-        const bookmarkBtns = cardListEl.querySelectorAll(".btn-bookmark");
-        bookmarkBtns.forEach(btn => {
-            btn.addEventListener("click", function(e) {
-                e.preventDefault();
+            marker.addEventListener("click", (e) => {
                 e.stopPropagation();
-                const id = this.dataset.id;
-                let currentBookmarks = JSON.parse(localStorage.getItem("yanggu_bookmarks")) || [];
-                
-                if (currentBookmarks.includes(id)) {
-                    currentBookmarks = currentBookmarks.filter(item => item !== id);
-                    this.classList.remove("bookmarked");
-                    showToast("즐겨찾기에서 해제되었습니다.");
-                } else {
-                    currentBookmarks.push(id);
-                    this.classList.add("bookmarked");
-                    showToast("즐겨찾기에 추가되었습니다!");
-                }
-                
-                localStorage.setItem("yanggu_bookmarks", JSON.stringify(currentBookmarks));
-                
-                // 만약 '저장한 곳' 탭에서 클릭했다면 즉시 카드 삭제
-                if (currentCategory === "bookmarked") {
-                    renderShops();
-                }
+                searchInput.value = shop.name;
+                searchQuery = shop.name.toLowerCase();
+                renderShops();
+
+                setTimeout(() => {
+                    const card = document.querySelector(`.shop-card`);
+                    if (card) {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        card.style.borderColor = 'var(--accent)';
+                        card.style.boxShadow = '0 0 15px rgba(231, 111, 81, 0.3)';
+                        setTimeout(() => {
+                            card.style.borderColor = '';
+                            card.style.boxShadow = '';
+                        }, 2000);
+                    }
+                }, 400);
             });
+
+            container.appendChild(marker);
         });
 
-        // 공유하기 클릭 이벤트 연결
-        const shareBtns = cardListEl.querySelectorAll(".btn-share");
-        shareBtns.forEach(btn => {
-            btn.addEventListener("click", function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                const id = this.dataset.id;
-                const name = this.dataset.name;
-                const category = this.dataset.category;
-                
-                // 공유 주소 생성 ( directory.html?category=...&q=상점명 )
-                const shareUrl = `${window.location.origin}${window.location.pathname}?category=${category}&q=${encodeURIComponent(name)}`;
-                
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(shareUrl).then(() => {
-                        showToast("상점 링크가 복사되었습니다!");
-                    }).catch(err => {
-                        console.error("클립보드 복사 실패", err);
-                        fallbackCopyTextToClipboard(shareUrl);
-                    });
-                } else {
-                    fallbackCopyTextToClipboard(shareUrl);
-                }
-            });
-        });
-
-        // 주입 후 다시 한 번 아이콘 생성 (동적 주입된 요소 적용)
         if (typeof lucide !== "undefined") {
-            lucide.createIcons();
+            lucide.createIcons({ node: container });
         }
     }
 }
@@ -642,6 +954,9 @@ function initContact() {
 /**
  * 커스텀 토스트 알림 띄우기
  */
+/**
+ * 커스텀 토스트 알림 띄우기
+ */
 function showToast(message) {
     let toast = document.getElementById("toast-msg");
     if (!toast) {
@@ -653,12 +968,16 @@ function showToast(message) {
     toast.innerHTML = `<i data-lucide="check-circle" style="width:18px; height:18px; color: #FFFFFF;"></i> <span>${message}</span>`;
     
     if (typeof lucide !== "undefined") {
-        lucide.createIcons({
-            attrs: {
-                style: "width:18px; height:18px; color:#FFFFFF; stroke-width: 2.5px;"
-            },
-            node: toast
-        });
+        try {
+            lucide.createIcons({
+                attrs: {
+                    style: "width:18px; height:18px; color:#FFFFFF; stroke-width: 2.5px;"
+                },
+                node: toast
+            });
+        } catch (e) {
+            console.error("Lucide icon creation failed inside toast", e);
+        }
     }
     toast.classList.add("show");
     setTimeout(() => {
@@ -681,7 +1000,7 @@ function fallbackCopyTextToClipboard(text) {
     try {
         const successful = document.execCommand('copy');
         if (successful) {
-            showToast("상점 링크가 복사되었습니다!");
+            showToast("클립보드에 복사되었습니다!");
         } else {
             console.error('클립보드 복사 실패(fallback unsuccessful)');
         }
@@ -689,5 +1008,127 @@ function fallbackCopyTextToClipboard(text) {
         console.error('클립보드 복사 실패(fallback error)', err);
     }
     document.body.removeChild(textArea);
+}
+
+/**
+ * 조용한 클립보드 복사 헬퍼 (알림창 없음)
+ */
+function fallbackCopyTextToClipboardSilently(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.position = "fixed";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+        document.execCommand('copy');
+    } catch (err) {
+        console.error('클립보드 복사 실패', err);
+    }
+    document.body.removeChild(textArea);
+}
+
+/**
+ * 전화번호 확인용 팝업 모달 띄우기
+ */
+function showPhoneModal(phoneNum, shopName) {
+    let modal = document.getElementById("phone-modal");
+    if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "phone-modal";
+        modal.style.position = "fixed";
+        modal.style.top = "0";
+        modal.style.left = "0";
+        modal.style.right = "0";
+        modal.style.bottom = "0";
+        modal.style.backgroundColor = "rgba(0, 0, 0, 0.6)";
+        modal.style.zIndex = "3000";
+        modal.style.display = "flex";
+        modal.style.alignItems = "center";
+        modal.style.justifyContent = "center";
+        modal.style.padding = "20px";
+        modal.style.opacity = "0";
+        modal.style.pointerEvents = "none";
+        modal.style.transition = "all 0.25s ease";
+
+        modal.innerHTML = `
+            <div style="background-color: var(--card-bg, #ffffff); border-radius: var(--radius-lg, 24px); padding: 24px; width: 100%; max-width: 360px; box-shadow: var(--shadow-lg); text-align: center; transform: scale(0.9); transition: all 0.25s ease;" id="phone-modal-content">
+                <div style="background-color: var(--primary-light, #EBF2ED); width: 56px; height: 56px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                    <i data-lucide="phone" style="color: var(--primary, #2C5E43); width: 24px; height: 24px;"></i>
+                </div>
+                <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 6px; color: var(--text-main, #1C2D24);" id="phone-modal-title">업체 연락처</h3>
+                <p style="font-size: 0.9rem; color: var(--text-muted, #6B7C72); margin-bottom: 16px;">아래 전화번호로 바로 연결하거나 복사할 수 있습니다.</p>
+                
+                <div style="font-size: 1.55rem; font-weight: 900; color: var(--accent, #E76F51); background-color: var(--bg-app, #FAF9F6); padding: 14px; border-radius: var(--radius-md, 16px); border: 1px solid var(--border, #E8EDE9); letter-spacing: 1px; margin-bottom: 20px;" id="phone-modal-number">
+                    010-0000-0000
+                </div>
+
+                <div style="display: flex; gap: 8px;">
+                    <button id="phone-modal-copy-btn" class="btn btn-outline" style="flex: 1; padding: 12px; font-size: 0.95rem;">번호 복사</button>
+                    <a id="phone-modal-call-btn" href="#" class="btn btn-primary" style="flex: 1; padding: 12px; font-size: 0.95rem; text-decoration: none;">전화 걸기</a>
+                </div>
+                <button id="phone-modal-close-btn" class="btn btn-outline" style="width: 100%; margin-top: 8px; padding: 10px; font-size: 0.9rem; border: none; background: none; color: var(--text-muted);">닫기</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        // Close functions
+        const closeModal = () => {
+            modal.style.opacity = "0";
+            modal.style.pointerEvents = "none";
+            modal.querySelector("#phone-modal-content").style.transform = "scale(0.9)";
+            setTimeout(() => {
+                modal.style.display = "none";
+            }, 250);
+        };
+
+        modal.querySelector("#phone-modal-close-btn").addEventListener("click", closeModal);
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Copy event
+        modal.querySelector("#phone-modal-copy-btn").addEventListener("click", () => {
+            const num = modal.querySelector("#phone-modal-number").innerText;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(num).then(() => {
+                    showToast("전화번호가 복사되었습니다!");
+                }).catch(() => {
+                    fallbackCopyTextToClipboard(num);
+                });
+            } else {
+                fallbackCopyTextToClipboard(num);
+            }
+        });
+    }
+
+    // Update dynamic contents
+    const titleEl = modal.querySelector("#phone-modal-title");
+    const numEl = modal.querySelector("#phone-modal-number");
+    const callBtn = modal.querySelector("#phone-modal-call-btn");
+
+    titleEl.innerText = shopName ? `${shopName} 연락처` : "업체 연락처";
+    numEl.innerText = phoneNum;
+    callBtn.setAttribute("href", `tel:${phoneNum}`);
+
+    if (typeof lucide !== "undefined") {
+        try {
+            lucide.createIcons({ node: modal });
+        } catch (e) {
+            console.error("Lucide creation inside phone modal failed:", e);
+        }
+    }
+
+    // Show modal
+    modal.style.display = "flex";
+    // Force reflow
+    modal.offsetHeight;
+    modal.style.pointerEvents = "all";
+    modal.style.opacity = "1";
+    modal.querySelector("#phone-modal-content").style.transform = "scale(1)";
 }
 

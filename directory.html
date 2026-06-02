@@ -41,6 +41,31 @@
                 <button class="tab-btn" data-category="bookmarked" style="color: var(--accent); flex-shrink: 0;"><i data-lucide="heart" style="width:12px; height:12px; fill:var(--accent); display:inline-block; vertical-align: middle; margin-right: 2px;"></i> 저장한 곳</button>
             </div>
 
+
+            <!-- 미니 레이더 거리 위젯 -->
+            <div class="radar-widget-container" id="radar-widget-container" style="margin-top: 10px;">
+                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 4px;">
+                    <i data-lucide="compass" style="width: 18px; height: 18px;"></i> 신교대 기준 반경 거리 위젯
+                </h3>
+                <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 10px;">신병교육대(중앙 붉은 점) 기준 차량/도보 거리 분포도</p>
+                <div class="radar-scope" id="radar-scope">
+                    <div class="radar-sweep"></div>
+                    <div class="radar-circle radar-circle-1"></div>
+                    <div class="radar-circle radar-circle-2"></div>
+                    <div class="radar-circle radar-circle-3"></div>
+                    <div class="radar-axis-h"></div>
+                    <div class="radar-axis-v"></div>
+                    <div class="radar-center" title="21사단 신교대"></div>
+                    <!-- 레이더 마커들이 JS로 주입됨 -->
+                    <div id="radar-markers-container"></div>
+                </div>
+                <div style="display: flex; justify-content: center; gap: 12px; font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">
+                    <span>🟢 5분 이내 (안쪽 원)</span>
+                    <span>🟡 10분 이내 (중간 원)</span>
+                    <span>🔴 15분 이내 (바깥 원)</span>
+                </div>
+            </div>
+
             <!-- 상점 카드 목록 출력 (반응형 그리드) -->
             <div id="shop-list-container" class="grid-2">
                 <!-- JS에서 동적 주입 -->

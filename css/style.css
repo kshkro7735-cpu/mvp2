@@ -824,3 +824,305 @@ textarea.form-control {
     transform: translateX(-50%) translateY(0);
 }
 
+/* ================================== */
+/* 1. 다크 모드 (야간 모드) 테마 재정의 */
+/* ================================== */
+body.dark-mode {
+    --bg-desktop: #111512;
+    --bg-app: #171E19;
+    --card-bg: #212B24;
+    --text-main: #ECEFF1;
+    --text-muted: #8E9C94;
+    --border: #2D3930;
+    --primary-light: #1A2E22;
+    --primary-hover: #3E7957;
+}
+
+body.dark-mode .form-control {
+    background-color: #171E19;
+    border-color: #2D3930;
+}
+
+body.dark-mode .option-btn {
+    background-color: #212B24;
+    border-color: #2D3930;
+}
+
+body.dark-mode .tab-btn {
+    background-color: #212B24;
+    border-color: #2D3930;
+}
+
+body.dark-mode .tab-btn.active {
+    background-color: var(--primary);
+    color: #FFFFFF;
+    border-color: var(--primary);
+}
+
+body.dark-mode .app-header {
+    border-bottom: 1px solid #2D3930;
+}
+
+body.dark-mode .bottom-nav {
+    background-color: #212B24;
+    border-top: 1px solid #2D3930;
+}
+
+body.dark-mode .timeline-content {
+    background-color: #212B24;
+    border-color: #2D3930;
+}
+
+body.dark-mode .shop-menu-box {
+    background-color: #1A2E22;
+}
+
+/* ================================== */
+/* 2. D-Day 카운트다운 타이머 스타일 */
+/* ================================== */
+.dday-card {
+    border: 2px solid var(--primary-light);
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, var(--card-bg), var(--primary-light));
+}
+
+body.dark-mode .dday-card {
+    border-color: #2D3930;
+    background: linear-gradient(135deg, #212B24, #171E19);
+}
+
+.dday-timer {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--accent);
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+}
+
+/* ================================== */
+/* 3. 스켈레톤 로더 Shimmer 스타일 */
+/* ================================== */
+.skeleton-card {
+    background-color: var(--card-bg);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    height: 480px;
+    display: flex;
+    flex-direction: column;
+}
+
+.skeleton-img {
+    height: 180px;
+    background: linear-gradient(90deg, var(--border) 25%, var(--primary-light) 50%, var(--border) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+.skeleton-info {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.skeleton-text {
+    height: 16px;
+    background: var(--border);
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--border) 25%, var(--primary-light) 50%, var(--border) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+.skeleton-text.title { width: 60%; height: 22px; }
+.skeleton-text.subtitle { width: 40%; height: 14px; }
+.skeleton-text.menu { width: 100%; height: 46px; }
+.skeleton-text.desc { width: 100%; height: 32px; }
+.skeleton-text.btn { width: 100%; height: 44px; margin-top: auto; }
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ================================== */
+/* 4. 미니 레이더 거리 위젯 스타일 */
+/* ================================== */
+.radar-widget-container {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-bottom: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.radar-scope {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    border: 2px solid var(--primary-light);
+    position: relative;
+    margin: 10px auto;
+    background-color: var(--bg-app);
+    box-shadow: inset 0 0 15px rgba(44, 94, 67, 0.08);
+}
+
+body.dark-mode .radar-scope {
+    border-color: #2D3930;
+    background-color: #171E19;
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.4);
+}
+
+.radar-circle {
+    border: 1px dashed var(--border);
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.radar-circle-1 { width: 60px; height: 60px; }
+.radar-circle-2 { width: 120px; height: 120px; }
+.radar-circle-3 { width: 180px; height: 180px; }
+
+.radar-axis-h {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    right: 10px;
+    height: 1px;
+    background-color: var(--border);
+}
+
+.radar-axis-v {
+    position: absolute;
+    left: 50%;
+    top: 10px;
+    bottom: 10px;
+    width: 1px;
+    background-color: var(--border);
+}
+
+.radar-sweep {
+    position: absolute;
+    width: 50%;
+    height: 50%;
+    background: linear-gradient(45deg, rgba(44, 94, 67, 0.15) 0%, transparent 100%);
+    transform-origin: bottom right;
+    top: 0;
+    left: 0;
+    animation: sweep 4s infinite linear;
+    border-right: 1px solid rgba(44, 94, 67, 0.3);
+}
+
+body.dark-mode .radar-sweep {
+    background: linear-gradient(45deg, rgba(62, 121, 87, 0.25) 0%, transparent 100%);
+    border-right: 1px solid rgba(62, 121, 87, 0.4);
+}
+
+@keyframes sweep {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.radar-marker {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: var(--card-bg);
+    border: 2px solid var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    z-index: 5;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    transition: var(--transition);
+}
+
+.radar-marker:hover {
+    transform: translate(-50%, -50%) scale(1.2);
+    z-index: 10;
+    background-color: var(--primary-light);
+}
+
+.radar-marker svg {
+    width: 14px;
+    height: 14px;
+    color: var(--primary);
+}
+
+.radar-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--accent);
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 8px var(--accent);
+    z-index: 6;
+}
+
+/* ================================== */
+/* 5. 오프라인 대비 인쇄 및 PDF 출력용 오버라이드 */
+/* ================================== */
+@media print {
+    body {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+    }
+    
+    .app-container {
+        max-width: 100% !important;
+        width: 100% !important;
+        box-shadow: none !important;
+        padding-bottom: 0 !important;
+    }
+    
+    .app-header, 
+    .bottom-nav, 
+    .header-action, 
+    .header-action-btn, 
+    .btn, 
+    .shop-actions, 
+    .card-action-btns, 
+    .search-sort-container, 
+    .tab-container,
+    .radar-widget-container,
+    #dday-input-zone,
+    #btn-reset-dday {
+        display: none !important;
+    }
+    
+    .timeline::before {
+        background-color: #CCCCCC !important;
+    }
+    
+    .timeline-item::before {
+        border-color: #000000 !important;
+        background-color: #FFFFFF !important;
+    }
+    
+    .timeline-content {
+        border: 1px solid #666666 !important;
+        box-shadow: none !important;
+        background-color: #FFFFFF !important;
+    }
+    
+    .shop-menu-box {
+        background-color: #F3F4F6 !important;
+        border-left: 3px solid #000000 !important;
+    }
+}
+
+

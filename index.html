@@ -56,6 +56,25 @@
                 </a>
             </div>
 
+            <!-- D-Day 카운트다운 카드 -->
+            <div class="card dday-card" id="dday-card" style="margin-bottom: 20px;">
+                <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <i data-lucide="calendar"></i> 🎓 수료식 카운트다운
+                </h3>
+                <div id="dday-input-zone" class="mt-10">
+                    <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 12px;">수료일(날짜)을 지정하면 남은 D-Day 시간이 실시간 표시됩니다.</p>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="date" id="dday-date-picker" class="form-control" style="padding: 10px 12px; font-size: 0.95rem; flex: 1;">
+                        <button id="btn-save-dday" class="btn btn-primary" style="padding: 10px 16px;">설정 완료</button>
+                    </div>
+                </div>
+                <div id="dday-display-zone" style="display: none; text-align: center; padding: 12px 0;">
+                    <div class="dday-timer" id="dday-timer">D-Day 00일 00:00:00</div>
+                    <p style="font-size: 0.98rem; font-weight: 600; color: var(--text-main);" id="dday-target-text"></p>
+                    <button id="btn-reset-dday" class="btn btn-outline" style="padding: 6px 14px; font-size: 0.82rem; margin: 12px auto 0 auto; display: block;">날짜 다시 설정</button>
+                </div>
+            </div>
+
             <!-- 반응형 2열 그리드 배치 -->
             <div class="grid-2">
                 <!-- 신병교육대 핵심 정보 -->
