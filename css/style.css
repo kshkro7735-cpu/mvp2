@@ -1125,4 +1125,334 @@ body.dark-mode .radar-sweep {
     }
 }
 
+/* ================================== */
+/* 6. 복귀 안심 타이머 및 경고 모달 스타일 */
+/* ================================== */
+.return-timer-banner {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--primary);
+    color: #FFFFFF;
+    text-align: center;
+    padding: 10px 15px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    transition: var(--transition);
+}
+
+.return-timer-banner.warning-orange {
+    background-color: var(--secondary);
+    color: #1C2D24;
+    animation: pulse-orange 2s infinite ease-in-out;
+}
+
+.return-timer-banner.warning-red {
+    background-color: var(--accent);
+    animation: pulse-red 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse-orange {
+    0% { opacity: 0.95; }
+    50% { opacity: 1; box-shadow: 0 0 15px rgba(212, 175, 55, 0.5); }
+    100% { opacity: 0.95; }
+}
+
+@keyframes pulse-red {
+    0% { opacity: 0.95; }
+    50% { opacity: 1; box-shadow: 0 0 15px rgba(231, 111, 81, 0.7); }
+    100% { opacity: 0.95; }
+}
+
+body.dark-mode .return-timer-banner.warning-orange {
+    color: #FFFFFF;
+}
+
+.alarm-modal-content {
+    border-radius: var(--radius-lg);
+    padding: 28px 24px;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+    transform: scale(0.9);
+    transition: var(--transition);
+    max-width: 380px;
+    width: 100%;
+}
+
+.alarm-modal-content.orange-alert {
+    border: 3px solid var(--secondary);
+    background-color: var(--card-bg);
+}
+
+.alarm-modal-content.red-alert {
+    border: 3px solid var(--accent);
+    background-color: var(--card-bg);
+}
+
+@media print {
+    .return-timer-banner {
+        display: none !important;
+    }
+}
+
+/* ================================== */
+/* 7. 5초 시네마틱 영상 루프 및 비디오 제작 도구 스타일 */
+/* ================================== */
+
+/* 이미지 컨테이너 내의 배경 이미지 레이어화 */
+.shop-img-container {
+    position: relative;
+    height: 180px;
+    background-color: var(--primary-light);
+    overflow: hidden;
+}
+
+.shop-img-bg-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.5s ease;
+    z-index: 1;
+}
+
+.shop-img-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    pointer-events: none; /* 클릭 이벤트가 뒷배경 레이어와 공유/즐겨찾기 버튼에 영향을 주지 않도록 설정 */
+}
+
+/* 5초 주기의 시네마틱 카메라 줌 & 팬 루프 */
+@keyframes cinematicPanZoom {
+    0% {
+        transform: scale(1.02) translate(0, 0);
+    }
+    50% {
+        transform: scale(1.15) translate(-2%, -1%);
+    }
+    100% {
+        transform: scale(1.02) translate(0, 0);
+    }
+}
+
+/* 호버 시 또는 클래스 활성화 시 실행 */
+.shop-card.cinematic-loop .shop-img-bg-layer,
+.shop-card:hover .shop-img-bg-layer {
+    animation: cinematicPanZoom 5s ease-in-out infinite;
+}
+
+/* 비디오 토글 버튼 활성화 상태 */
+.btn-card-action.video-active {
+    background-color: var(--primary) !important;
+    color: #FFFFFF !important;
+}
+
+.btn-card-action.video-active i {
+    color: #FFFFFF !important;
+}
+
+/* 5초 비디오 메이커 전용 스타일 */
+.generator-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    margin-top: 15px;
+}
+
+@media (min-width: 768px) {
+    .generator-container {
+        grid-template-columns: 320px 1fr;
+    }
+}
+
+@media (min-width: 992px) {
+    .generator-container {
+        grid-template-columns: 380px 1fr;
+    }
+}
+
+/* 폰 프레임 시뮬레이터 */
+.phone-frame-wrapper {
+    background-color: #1a1a1a;
+    border: 12px solid #333;
+    border-radius: 36px;
+    padding: 10px;
+    box-shadow: var(--shadow-lg), 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    position: relative;
+    max-width: 360px;
+    margin: 0 auto;
+    width: 100%;
+    aspect-ratio: 9 / 16;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.phone-screen {
+    background-color: #000000;
+    border-radius: 20px;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.canvas-preview-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.canvas-preview-container canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 맛집 그리드 선택기 */
+.preset-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 480px) {
+    .preset-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.preset-item {
+    aspect-ratio: 1;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--border);
+    cursor: pointer;
+    background-size: cover;
+    background-position: center;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.preset-item:hover, .preset-item.active {
+    border-color: var(--primary);
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(44, 94, 67, 0.15);
+}
+
+.preset-item span {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.65);
+    color: #FFFFFF;
+    font-size: 0.72rem;
+    text-align: center;
+    padding: 3px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 카메라 모션 버튼 그룹 */
+.motion-select-container {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.motion-btn {
+    flex: 1;
+    padding: 12px 6px;
+    background-color: var(--card-bg);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.motion-btn:hover, .motion-btn.active {
+    border-color: var(--primary);
+    background-color: var(--primary-light);
+    color: var(--primary);
+}
+
+/* 업로더 스타일 */
+.custom-uploader {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    background-color: var(--card-bg);
+    margin-bottom: 20px;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+}
+
+.custom-uploader:hover {
+    border-color: var(--primary);
+    background-color: var(--primary-light);
+    color: var(--primary);
+}
+
+/* 내보내기 프로그레스 */
+.progress-container {
+    display: none;
+    margin-top: 16px;
+    background-color: var(--border);
+    border-radius: 10px;
+    height: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar {
+    background-color: var(--accent);
+    height: 100%;
+    width: 0%;
+    transition: width 0.1s linear;
+}
+
+.progress-text {
+    display: none;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-top: 6px;
+}
+
+
 
