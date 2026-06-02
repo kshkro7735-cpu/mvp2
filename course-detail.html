@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>양구온길 - 상세 면회 코스 일정표</title>
+    <meta name="description" content="양구군 신병교육대 수료식 직후부터 복귀까지 동선 낭비 없는 매장 전화걸기 및 지도 연동 상세 타임라인 정보">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body data-page="course-detail">
+
+    <div class="app-container">
+        <!-- 공통 헤더 들어갈 자리 -->
+        <div id="header-placeholder"></div>
+
+        <div class="app-content" id="course-detail-container">
+            <!-- 뒤로가기 링크 -->
+            <a href="courses.html" style="text-decoration: none; font-size: 1rem; font-weight: 700; color: var(--primary); display: inline-flex; align-items: center; gap: 4px; margin-bottom: 16px;">
+                <i data-lucide="arrow-left" style="width: 18px; height: 18px;"></i> 다른 코스 추천 받기
+            </a>
+
+            <!-- 반응형 2열 배치 -->
+            <div class="grid-2">
+                <div>
+                    <!-- 코스 개요 카드 -->
+                    <div class="card" style="background-color: var(--primary); color: #ffffff; border: none; padding: 22px 20px; margin-bottom: 20px;">
+                        <span id="course-duration" class="badge" style="background-color: rgba(255,255,255,0.25); color: #ffffff; font-size: 0.85rem; padding: 6px 12px;">코스소요</span>
+                        <h1 id="course-title" style="color: #ffffff; font-size: 1.45rem; font-weight: 800; margin-top: 10px; margin-bottom: 8px;">코스 명칭</h1>
+                        <p id="course-summary" style="color: rgba(255, 255, 255, 0.9); font-size: 0.98rem; line-height: 1.5; margin-bottom: 12px;">코스 요약 설명</p>
+                        <div style="border-top: 1px solid rgba(255,255,255,0.15); padding-top: 10px; font-size: 0.92rem; color: rgba(255,255,255,0.85);">
+                            <i data-lucide="smile" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;"></i>
+                            <span id="course-target">추천 대상</span>
+                        </div>
+                    </div>
+
+                    <!-- 안전 수칙 주의 배너 -->
+                    <div class="card text-center" style="background-color: #FEF3C7; border: 1px solid #F59E0B; padding: 18px; margin-bottom: 20px;">
+                        <h4 style="color: #92400E; font-size: 1.05rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 6px;">
+                            <i data-lucide="alert-triangle" style="width: 18px; height: 18px;"></i> 복귀 시간 준수 안내
+                        </h4>
+                        <p style="color: #B45309; font-size: 0.92rem; line-height: 1.45; margin-bottom: 0;">21사단 복귀 마감 시간은 17시~17시 30분입니다. 복귀 전 최소 15분 전에는 신교대 근처에 도착하여 아들이 여유롭게 들어갈 수 있도록 도와주세요.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <!-- 타임라인 영역 -->
+                    <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-top: 0; margin-bottom: 16px;">
+                        <i data-lucide="calendar" style="color: var(--primary)"></i> 시간대별 추천 상세 동선
+                    </h2>
+                    
+                    <div id="timeline-container" class="timeline">
+                        <!-- JS에서 동적 주입 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 공통 하단 바 들어갈 자리 -->
+        <div id="nav-placeholder"></div>
+    </div>
+
+    <!-- 스크립트 로드 -->
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

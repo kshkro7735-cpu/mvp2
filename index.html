@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>양구온길 - 군 장병 가족 면회 길잡이</title>
+    <meta name="description" content="양구군 21사단 백두산부대 신병교육대 수료식 및 면회객을 위한 맞춤 일정 계획, 숙소, 식당, 카페 정보 제공 서비스">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body data-page="home">
+
+    <div class="app-container">
+        <!-- 공통 헤더 들어갈 자리 -->
+        <div id="header-placeholder"></div>
+
+        <div class="app-content">
+            <!-- 웰컴 비주얼 배너 -->
+            <div class="card" style="background: linear-gradient(135deg, var(--primary), var(--primary-hover)); color: #ffffff; border: none; padding: 26px 20px; border-radius: var(--radius-lg); margin-bottom: 24px; position: relative; overflow: hidden;">
+                <div style="position: relative; z-index: 2;">
+                    <span style="background-color: rgba(255, 255, 255, 0.2); padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; display: inline-block; margin-bottom: 12px; letter-spacing: 0.5px;">21사단 면회객 공식 가이드</span>
+                    <h1 style="color: #ffffff; margin-bottom: 8px; font-size: 1.7rem; font-weight: 800; line-height: 1.35;">아들을 만나는 설레는 발걸음,<br>양구온길이 동행합니다.</h1>
+                    <p style="color: rgba(255,255,255,0.85); font-size: 1rem; line-height: 1.5; margin-bottom: 0;">양구군이 처음이신 부모님을 위해 검증된 숙소, 맛집, 그리고 최적의 면회 동선을 추천해 드립니다.</p>
+                </div>
+                <!-- 아기자기한 배경 원 장식 -->
+                <div style="position: absolute; right: -50px; bottom: -50px; width: 180px; height: 180px; border-radius: 50%; background-color: rgba(255,255,255,0.06); z-index: 1;"></div>
+            </div>
+
+            <!-- 빠른 바로가기 메뉴 -->
+            <h2 id="menu-title"><i data-lucide="compass" style="color: var(--primary)"></i> 빠르고 쉬운 주변 정보</h2>
+            <div class="grid-4" style="margin-bottom: 24px;">
+                <a href="directory.html?category=lodging" class="card text-center" style="margin-bottom: 0; padding: 18px 10px; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                    <div style="background-color: var(--primary-light); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="home" style="color: var(--primary); width: 24px; height: 24px;"></i>
+                    </div>
+                    <span style="font-size: 1.05rem; font-weight: 700; color: var(--text-main);">숙소 찾기</span>
+                </a>
+                <a href="directory.html?category=restaurant" class="card text-center" style="margin-bottom: 0; padding: 18px 10px; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                    <div style="background-color: #FFF0ED; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="utensils" style="color: var(--accent); width: 24px; height: 24px;"></i>
+                    </div>
+                    <span style="font-size: 1.05rem; font-weight: 700; color: var(--text-main);">식당 맛집</span>
+                </a>
+                <a href="directory.html?category=cafe" class="card text-center" style="margin-bottom: 0; padding: 18px 10px; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                    <div style="background-color: #FEF9C3; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="coffee" style="color: #CA8A04; width: 24px; height: 24px;"></i>
+                    </div>
+                    <span style="font-size: 1.05rem; font-weight: 700; color: var(--text-main);">카페/디저트</span>
+                </a>
+                <a href="courses.html" class="card text-center" style="margin-bottom: 0; padding: 18px 10px; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 8px; border: 2px solid var(--secondary); background-color: #FFFDF9;">
+                    <div style="background-color: #FFF7ED; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="route" style="color: var(--secondary); width: 24px; height: 24px;"></i>
+                    </div>
+                    <span style="font-size: 1.05rem; font-weight: 700; color: var(--text-main);">맞춤코스 추천</span>
+                </a>
+            </div>
+
+            <!-- 반응형 2열 그리드 배치 -->
+            <div class="grid-2">
+                <!-- 신병교육대 핵심 정보 -->
+                <div class="card highlight" style="margin-bottom: 0;">
+                    <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                        <i data-lucide="info" style="width: 22px; height: 22px;"></i> 21사단 신병교육대 안내
+                    </h3>
+                    <div style="margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
+                        <p style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">📍 주소</p>
+                        <p style="font-size: 1rem; color: var(--text-main); line-height: 1.4;">강원특별자치도 양구군 국토정중앙면 야촌리 126-2</p>
+                        <div class="flex-gap-10 mt-10">
+                            <a href="https://map.kakao.com/?urlX=562300&urlY=1202300&urlName=21사단신병교육대" target="_blank" class="btn btn-secondary" style="padding: 10px 14px; font-size: 0.9rem; flex: 1;">
+                                <i data-lucide="map" style="width: 16px; height: 16px;"></i> 카카오맵 연결
+                            </a>
+                            <a href="https://map.naver.com/v5/search/21사단신병교육대" target="_blank" class="btn btn-outline" style="padding: 10px 14px; font-size: 0.9rem; flex: 1;">
+                                <i data-lucide="external-link" style="width: 16px; height: 16px;"></i> 네이버맵 연결
+                            </a>
+                        </div>
+                    </div>
+                    <div>
+                        <p style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">💡 수료식 당일 안내/수칙</p>
+                        <ul id="military-tips-list" style="padding-left: 20px; margin-top: 5px;">
+                            <!-- JS에서 동적 주입 -->
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 면회 준비물 체크리스트 -->
+                <div class="card" style="border: 2px solid var(--primary-light); margin-bottom: 0;">
+                    <h3 style="font-size: 1.25rem; font-weight: 800; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <i data-lucide="check-square" style="color: var(--primary); width: 22px; height: 22px;"></i> 수료식 면회 준비물 체크리스트
+                    </h3>
+                    <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 16px;">준비물을 챙기면서 하나씩 체크해 보세요. 새로고침해도 기록이 보존됩니다.</p>
+                    
+                    <div id="checklist-container">
+                        <!-- JS에서 동적 주입 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 공통 하단 바 들어갈 자리 -->
+        <div id="nav-placeholder"></div>
+    </div>
+
+    <!-- 스크립트 로드 -->
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

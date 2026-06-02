@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>양구온길 - 제휴 제안 및 문의</title>
+    <meta name="description" content="양구군 소상공인을 위한 입점 제안 및 제휴 신청. 군 장병 우대 혜택을 등록하고 면회객 고객을 맞이하세요.">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body data-page="contact">
+
+    <div class="app-container">
+        <!-- 공통 헤더 들어갈 자리 -->
+        <div id="header-placeholder"></div>
+
+        <div class="app-content">
+            <h1 style="font-size: 1.45rem; font-weight: 800; color: var(--primary); margin-top: 10px; margin-bottom: 8px;">제휴 및 입점 신청</h1>
+            <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 20px;">양구군 소상공인 여러분의 소중한 업체를 군 장병 가족분들께 홍보하고 군인 우대 혜택을 소개해 보세요.</p>
+
+            <!-- 제휴 소개 카드 -->
+            <div class="card highlight max-width-md" style="background-color: var(--primary-light); border-color: var(--primary); margin-bottom: 24px;">
+                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--primary); margin-bottom: 8px;">📢 양구온길 입점 혜택</h3>
+                <ul style="padding-left: 18px; font-size: 0.95rem; color: var(--text-main); line-height: 1.6;">
+                    <li><strong>100% 타겟 광고</strong>: 양구군을 찾는 면회객 부모님들께 집중 노출됩니다.</li>
+                    <li><strong>무료 업체 등록</strong>: MVP 운영 기간 내 입점 및 홍보 비용은 전액 무료입니다.</li>
+                    <li><strong>신뢰도 상승</strong>: '군인 우대 혜택 업체' 배지를 통해 장병 가족의 방문 만족도를 증대합니다.</li>
+                </ul>
+            </div>
+
+            <!-- 신청서 양식 -->
+            <div class="card max-width-md" style="padding: 24px 20px;">
+                <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 18px; color: var(--text-main);">
+                    <i data-lucide="edit-3" style="color: var(--primary)"></i> 입점 신청서 작성
+                </h2>
+
+                <form id="partner-contact-form">
+                    <!-- 업체명 -->
+                    <div class="form-group">
+                        <label for="partner-shop-name">업체명 <span class="color-accent">*</span></label>
+                        <input type="text" id="partner-shop-name" class="form-control" placeholder="예: 양구온길 펜션, 양구갈비" required>
+                    </div>
+
+                    <!-- 업종 선택 -->
+                    <div class="form-group">
+                        <label for="partner-category">업종 구분 <span class="color-accent">*</span></label>
+                        <select id="partner-category" class="form-control" style="background-image: none;" required>
+                            <option value="lodging">🏡 숙박 (펜션/민박/호텔)</option>
+                            <option value="restaurant">🍖 식당 (한식/갈비/회 등)</option>
+                            <option value="cafe">☕ 카페 / 디저트</option>
+                        </select>
+                    </div>
+
+                    <!-- 연락처 -->
+                    <div class="form-group">
+                        <label for="partner-phone">대표 연락처 <span class="color-accent">*</span></label>
+                        <input type="tel" id="partner-phone" class="form-control" placeholder="예: 033-481-0000" required>
+                    </div>
+
+                    <!-- 군 장병 제공 혜택 -->
+                    <div class="form-group">
+                        <label for="partner-benefit">군 장병/가족 우대 혜택 내용 <span class="color-accent">*</span></label>
+                        <textarea id="partner-benefit" class="form-control" placeholder="예: 군 장병 동반 테이블 음료수 1캔 무료 제공 / 수료식 당일 대여 시 10% 할인" required></textarea>
+                    </div>
+
+                    <!-- 업체 간략 소개 -->
+                    <div class="form-group">
+                        <label for="partner-desc">업체 한 줄 소개</label>
+                        <textarea id="partner-desc" class="form-control" style="height: 80px;" placeholder="가족들과 오붓하게 쉬어가기 좋은 신축 독채 펜션입니다."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-full" style="margin-top: 10px;">
+                        <i data-lucide="check"></i> 신청서 제출하기
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 공통 하단 바 들어갈 자리 -->
+        <div id="nav-placeholder"></div>
+    </div>
+
+    <!-- 성공 안내 모달 -->
+    <div id="contact-success-modal" class="modal">
+        <div class="modal-content text-center">
+            <div style="background-color: var(--primary-light); width: 60px; height: 60px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                <i data-lucide="check-circle" style="color: var(--primary); width: 32px; height: 32px; stroke-width: 2.5px;"></i>
+            </div>
+            <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--primary); margin-bottom: 8px;">제휴 신청 완료!</h3>
+            <p style="font-size: 0.98rem; color: var(--text-main); line-height: 1.5; margin-bottom: 20px;">
+                신청하신 업체 정보가 로컬 스토리지에 성공적으로 임시 등록되었습니다.<br>
+                운영진 검토 후 적어주신 연락처로 개별 연락해 드리겠습니다. 감사합니다.
+            </p>
+            <button id="modal-close-btn" class="btn btn-primary w-full">확인</button>
+        </div>
+    </div>
+
+    <!-- 스크립트 로드 -->
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
